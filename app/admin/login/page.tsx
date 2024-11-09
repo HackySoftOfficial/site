@@ -1,9 +1,8 @@
-import { AdminLoginDialog } from "@/components/admin/login-dialog";
-
 export default function AdminLoginPage() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-      <AdminLoginDialog />
-    </div>
-  );
+  // Redirect to Cloudflare Access login
+  if (typeof window !== 'undefined') {
+    window.location.href = `https://${process.env.NEXT_PUBLIC_CLOUDFLARE_TEAM_NAME}.cloudflareaccess.com/cdn-cgi/access/login/${process.env.NEXT_PUBLIC_CLOUDFLARE_AUD_TAG}?redirect=${window.location.origin}/admin`;
+  }
+  
+  return null;
 }

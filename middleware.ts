@@ -3,9 +3,15 @@ import type { NextRequest } from 'next/server';
 import { verifyAccessJWT } from './lib/cloudflare/auth';
 
 export async function middleware(request: NextRequest) {
-  // Only apply to /api routes except webhooks
-  if (!request.nextUrl.pathname.startsWith('/api') || 
+  // Skip authentication for public routes
+  if (request.nextUrl.pathname.startsWith('/api/chat') || 
       request.nextUrl.pathname.startsWith('/api/webhooks')) {
+    return NextResponse.next();
+  }
+
+  // Only apply to /admin and /api routes
+  if (!request.nextUrl.pathname.startsWith('/admin') && 
+      !request.nextUrl.pathname.startsWith('/api')) {
     return NextResponse.next();
   }
 

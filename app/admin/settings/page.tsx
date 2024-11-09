@@ -1,23 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { useState, useEffect } from "react";
 
 const settingsFormSchema = z.object({
-  siteName: z.string().min(2, "Site name must be at least 2 characters"),
-  supportEmail: z.string().email("Invalid email address"),
+  siteName: z.string().min(2).max(50),
+  supportEmail: z.string().email(),
   enableNotifications: z.boolean(),
-  apiKey: z.string().min(1, "API key is required"),
+  apiKey: z.string().min(1),
 });
 
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
@@ -25,6 +22,7 @@ type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 export default function SettingsPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),
@@ -36,41 +34,41 @@ export default function SettingsPage() {
     },
   });
 
-  // Load existing settings
+  // Fetch existing settings
   useEffect(() => {
-    async function loadSettings() {
+    async function fetchSettings() {
       try {
-        const settingsDoc = await getDoc(doc(db, "settings", "general"));
-        if (settingsDoc.exists()) {
-          const data = settingsDoc.data();
-          form.reset({
-            siteName: data.siteName,
-            supportEmail: data.supportEmail,
-            enableNotifications: data.enableNotifications,
-            apiKey: data.apiKey,
-          });
-        }
+        const response = await fetch('/api/admin/settings');
+        if (!response.ok) throw new Error('Failed to fetch settings');
+        const data = await response.json();
+        form.reset(data);
       } catch (error) {
-        console.error("Error loading settings:", error);
+        console.error('Error fetching settings:', error);
         toast({
           title: "Error",
           description: "Failed to load settings. Please refresh the page.",
           variant: "destructive",
         });
+      } finally {
+        setIsInitializing(false);
       }
     }
 
-    loadSettings();
+    fetchSettings();
   }, [form, toast]);
 
   async function onSubmit(data: SettingsFormValues) {
     setIsLoading(true);
     try {
-      // Save to Firestore
-      await setDoc(doc(db, "settings", "general"), {
-        ...data,
-        updatedAt: new Date().toISOString(),
+      const response = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       });
+
+      if (!response.ok) throw new Error('Failed to save settings');
       
       toast({
         title: "Settings updated",
@@ -88,106 +86,84 @@ export default function SettingsPage() {
     }
   }
 
+  if (isInitializing) {
+    return <div>Loading settings...</div>;
+  }
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">Manage your application settings</p>
-      </div>
-
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>General Settings</CardTitle>
-            <CardDescription>
-              Configure your application&apos;s general settings
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <FormField
-                  control={form.control}
-                  name="siteName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Site Name</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        This is your website&apos;s name that will be displayed to users.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="siteName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Site Name</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormDescription>
+                The name of your website
+              </FormDescription>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="supportEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Support Email</FormLabel>
+              <FormControl>
+                <Input type="email" {...field} />
+              </FormControl>
+              <FormDescription>
+                Email address for customer support
+              </FormDescription>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="enableNotifications"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">
+                  Notifications
+                </FormLabel>
+                <FormDescription>
+                  Enable email notifications for new orders
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="supportEmail"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Support Email</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="email" />
-                      </FormControl>
-                      <FormDescription>
-                        Email address for customer support inquiries.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="enableNotifications"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">
-                          Email Notifications
-                        </FormLabel>
-                        <FormDescription>
-                          Receive email notifications for new orders and customer inquiries.
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="apiKey"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>API Key</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="password" />
-                      </FormControl>
-                      <FormDescription>
-                        Your API key for external service integrations.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Saving..." : "Save Changes"}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="apiKey"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>API Key</FormLabel>
+              <FormControl>
+                <Input {...field} type="password" />
+              </FormControl>
+              <FormDescription>
+                Your API key for external services
+              </FormDescription>
+            </FormItem>
+          )}
+        />
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Saving..." : "Save changes"}
+        </Button>
+      </form>
+    </Form>
   );
 }

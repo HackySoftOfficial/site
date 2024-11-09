@@ -31,4 +31,25 @@ export function getAuthUser(token: string): { email: string; } {
   const tokenParts = token.split('.');
   const payload = JSON.parse(atob(tokenParts[1]));
   return { email: payload.email };
+}
+
+// Add GLHF configuration
+const GLHF_API_KEY = "glhf_02dbcee04bd1e813861b466fee17f590";
+const GLHF_BASE_URL = 'https://glhf.chat/api/openai/v1';
+
+export async function getGLHFModels() {
+  try {
+    const response = await fetch(`${GLHF_BASE_URL}/models`, {
+      headers: {
+        'Authorization': `Bearer ${GLHF_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch models');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching GLHF models:', error);
+    throw error;
+  }
 } 
