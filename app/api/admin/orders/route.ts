@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createDb } from '@/lib/db';
-import { orders } from '@/lib/db/schema';
-import { desc, sql } from 'drizzle-orm';
+import { Order } from '@/lib/db';
 
 export async function GET(request: Request) {
   try {
@@ -10,11 +8,29 @@ export async function GET(request: Request) {
     const dateRange = searchParams.get('dateRange');
     const search = searchParams.get('search');
 
-    const db = createDb(process.env.DB as unknown as D1Database);
-    let query = db.select().from(orders).orderBy(desc(orders.createdAt));
+    // Get all orders from KV
+    const { keys } = await ORDERS_KV.list();
+    const orderPromises = keys.map(async key => {
+      const data = await ORDERS_KV.get(key.name);
+      if (!data) return null;
+      try {
+        return JSON.parse(data) as Order;
+      } catch {
+        return null;
+      }
+    });
+    
+    // Filter out null values and type as Order[]
+    let orders = (await Promise.all(orderPromises))
+      .filter((order): order is Order => 
+        order !== null && 
+        typeof order === 'object' &&
+        'id' in order
+      );
 
+    // Apply filters
     if (status && status !== 'all') {
-      query = query.where(sql`${orders.status} = ${status}`);
+      orders = orders.filter(order => order.status === status);
     }
 
     if (dateRange && dateRange !== 'all') {
@@ -33,22 +49,22 @@ export async function GET(request: Request) {
           break;
       }
 
-      query = query.where(sql`${orders.createdAt} >= ${startDate}`);
+      orders = orders.filter(order => order.createdAt >= startDate);
     }
 
-    let results = await query;
+    // Sort by createdAt desc
+    orders.sort((a, b) => b.createdAt - a.createdAt);
 
     if (search) {
       const searchLower = search.toLowerCase();
-      results = results.filter(
-        order =>
-          order.customerName.toLowerCase().includes(searchLower) ||
-          order.customerEmail.toLowerCase().includes(searchLower) ||
-          order.id.toLowerCase().includes(searchLower)
-      );
+      orders = orders.filter(order => {
+        return order.id.toLowerCase().includes(searchLower) ||
+               (order.contactValue?.toLowerCase() || '').includes(searchLower) ||
+               (order.contactMethod?.toLowerCase() || '').includes(searchLower);
+      });
     }
 
-    return NextResponse.json({ orders: results });
+    return NextResponse.json({ orders });
   } catch (error) {
     console.error('Error fetching orders:', error);
     return NextResponse.json(

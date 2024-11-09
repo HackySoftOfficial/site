@@ -1,19 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createDb } from '@/lib/db';
-import { orders } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
 
 export async function POST(req: Request) {
   try {
     const { repoName, sessionId } = await req.json();
-    const db = createDb(process.env.DB as unknown as D1Database);
 
     // Verify order exists and is paid
-    const order = await db.query.orders.findFirst({
-      where: eq(orders.status, 'completed'),
-    });
-    
-    if (!order) {
+    const order = await ORDERS_KV.get(sessionId, { type: 'json' });
+    if (!order || order.status !== 'completed') {
       return NextResponse.json({ error: 'Payment required' }, { status: 402 });
     }
 

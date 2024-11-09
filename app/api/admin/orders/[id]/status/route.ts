@@ -1,7 +1,4 @@
 import { NextResponse } from "next/server";
-import { createDb } from "@/lib/db";
-import { orders } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 
 export async function PATCH(
   request: Request,
@@ -9,16 +6,19 @@ export async function PATCH(
 ) {
   try {
     const { status } = await request.json();
-    const db = createDb(process.env.DB as unknown as D1Database);
 
-    await db
-      .update(orders)
-      .set({
-        status,
-        updatedAt: Date.now(),
-        updatedBy: "admin", // In production, get this from the authenticated user
-      })
-      .where(eq(orders.id, params.id));
+    // Update order status in KV
+    const order = await ORDERS_KV.get(params.id, { type: 'json' });
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    await ORDERS_KV.put(params.id, JSON.stringify({
+      ...order,
+      status,
+      updatedAt: Date.now(),
+      updatedBy: "admin", // In production, get this from the authenticated user
+    }));
 
     return NextResponse.json({ success: true });
   } catch (error) {

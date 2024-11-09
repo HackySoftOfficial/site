@@ -1,6 +1,4 @@
-import { db } from '@/lib/db';
-import { orders } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
   try {
@@ -8,35 +6,30 @@ export async function GET(req: Request) {
     const orderId = searchParams.get('orderId');
 
     if (!orderId) {
-      return new Response(JSON.stringify({ error: 'Order ID is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return NextResponse.json(
+        { error: 'Order ID is required' },
+        { status: 400 }
+      );
     }
 
-    const order = await db.query.orders.findFirst({
-      where: eq(orders.id, orderId),
-    });
+    const order = await ORDERS_KV.get(orderId, { type: 'json' });
 
     if (!order) {
-      return new Response(JSON.stringify({ error: 'Order not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return NextResponse.json(
+        { error: 'Order not found' },
+        { status: 404 }
+      );
     }
 
-    return new Response(JSON.stringify({ 
+    return NextResponse.json({
       status: order.status,
-      transactionHash: order.transactionHash 
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      transactionHash: order.transactionHash
     });
   } catch (error) {
     console.error('Error checking payment status:', error);
-    return new Response(JSON.stringify({ error: 'Failed to check payment status' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return NextResponse.json(
+      { error: 'Failed to check payment status' },
+      { status: 500 }
+    );
   }
 } 
