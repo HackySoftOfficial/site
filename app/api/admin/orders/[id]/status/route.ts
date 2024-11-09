@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 export async function PATCH(
   request: Request,

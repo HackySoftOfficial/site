@@ -6,6 +6,8 @@ import { Query, DocumentData } from "firebase-admin/firestore";
 // Mark route as dynamic
 export const dynamic = 'force-dynamic';
 
+export const runtime = 'edge';
+
 interface Order {
   id: string;
   customer: {

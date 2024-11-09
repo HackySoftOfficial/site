@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { Octokit } from '@octokit/rest';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
