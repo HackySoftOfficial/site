@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -10,6 +10,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase/client";
 
 const settingsFormSchema = z.object({
   siteName: z.string().min(2, "Site name must be at least 2 characters"),
@@ -20,33 +22,62 @@ const settingsFormSchema = z.object({
 
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 
-const defaultValues: Partial<SettingsFormValues> = {
-  siteName: "DevForge",
-  supportEmail: "support@devforge.com",
-  enableNotifications: true,
-  apiKey: process.env.NEXT_PUBLIC_API_KEY || "",
-};
-
 export default function SettingsPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),
-    defaultValues,
+    defaultValues: {
+      siteName: "",
+      supportEmail: "",
+      enableNotifications: false,
+      apiKey: "",
+    },
   });
+
+  // Load existing settings
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const settingsDoc = await getDoc(doc(db, "settings", "general"));
+        if (settingsDoc.exists()) {
+          const data = settingsDoc.data();
+          form.reset({
+            siteName: data.siteName,
+            supportEmail: data.supportEmail,
+            enableNotifications: data.enableNotifications,
+            apiKey: data.apiKey,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading settings:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load settings. Please refresh the page.",
+          variant: "destructive",
+        });
+      }
+    }
+
+    loadSettings();
+  }, [form, toast]);
 
   async function onSubmit(data: SettingsFormValues) {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Save to Firestore
+      await setDoc(doc(db, "settings", "general"), {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      });
       
       toast({
         title: "Settings updated",
         description: "Your settings have been saved successfully.",
       });
     } catch (error) {
+      console.error("Error saving settings:", error);
       toast({
         title: "Error",
         description: "Failed to update settings. Please try again.",
