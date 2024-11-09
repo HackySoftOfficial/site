@@ -1,33 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  eslint: {
-    ignoreDuringBuilds: true,
+  experimental: {
+    serverActions: true,
   },
-  images: { unoptimized: true },
-  webpack: (config) => {
-    config.resolve = {
-      ...config.resolve,
-      preferRelative: true,
-      alias: {
-        ...config.resolve.alias,
-        undici: false
-      },
-      fallback: {
-        ...config.resolve.fallback,
-        "http": false,
-        "https": false,
-        "url": false,
-        "zlib": false,
-        "net": false,
-        "path": false,
-        "stream": false,
-        "util": false,
-        "crypto": false
-      }
-    };
-    return config;
+  images: {
+    unoptimized: true,
   }
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig

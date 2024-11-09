@@ -1,321 +1,324 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { loadStripe } from '@stripe/stripe-js';
-import { Download } from 'lucide-react';
+import { Download, Copy, Check } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import dynamic from 'next/dynamic';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const QRCode = dynamic(
+  () => import('qrcode.react').then((mod) => {
+    const { QRCodeSVG } = mod;
+    return QRCodeSVG;
+  }),
+  { ssr: false }
+);
 
-const SOFTWARE_PRODUCTS = [
-  {
-    id: 'webhook-spammer',
-    name: 'Webhook Spammer',
-    description: 'Professional webhook testing and automation tool for Discord',
-    price: 29.99,
-    repo: 'webhook-spammer'
+const PRODUCT_TIERS = {
+  starter: {
+    name: 'Starter Tools',
+    description: 'Essential automation tools and utilities',
+    basePrice: 5.99,
+    maxPrice: 9.99,
+    examples: ['Task Automators', 'File Converters', 'System Monitors']
   },
-  {
-    id: 'discord-token-gen',
-    name: 'Discord Token Generator',
-    description: 'Advanced token generation utility with proxy support',
-    price: 49.99,
-    repo: 'discord-token-gen-old'
+  professional: {
+    name: 'Professional Suite',
+    description: 'Advanced tools with data processing capabilities',
+    basePrice: 12.99,
+    maxPrice: 19.99,
+    examples: ['Network Analyzers', 'Data Scrapers', 'Automation Frameworks']
   },
-  {
-    id: 'pycompiler',
-    name: 'PyCompiler',
-    description: 'Powerful Python code compilation and obfuscation tool',
-    price: 39.99,
-    repo: 'PyCompiler'
-  },
-  {
-    id: 'scam-bot',
-    name: 'Security Testing Bot',
-    description: 'Educational security testing tool for Discord',
-    price: 34.99,
-    repo: 'scam-bot'
-  },
-  {
-    id: 'dead-lavaraider',
-    name: 'DEAD-LavaRaider',
-    description: 'Advanced Discord server management utility',
-    price: 44.99,
-    repo: 'DEAD-LavaRaider'
-  },
-  {
-    id: 'lazysafe',
-    name: 'LazySafe',
-    description: 'Automated security testing framework',
-    price: 39.99,
-    repo: 'LazySafe'
+  enterprise: {
+    name: 'Enterprise Solutions',
+    description: 'Full-scale applications with advanced features',
+    basePrice: 24.99,
+    maxPrice: 49.99,
+    examples: ['Custom Automation Suites', 'Integration Tools', 'Enterprise Frameworks']
   }
-];
-
-const CUSTOM_SERVICE_TYPES = {
-  web: { base: 5000, title: 'Web Development' },
-  mobile: { base: 8000, title: 'Mobile Development' },
-  desktop: { base: 7000, title: 'Desktop Development' },
-  api: { base: 4000, title: 'API Development' },
 };
 
-type ServiceType = keyof typeof CUSTOM_SERVICE_TYPES;
-type ProjectSize = 'small' | 'medium' | 'large';
+interface CheckoutResponse {
+  sessionId: string;
+}
+
+interface CryptoPaymentDialogProps {
+  amount: number;
+  onClose: () => void;
+  productId: string;
+}
+
+function CryptoPaymentDialog({ amount, onClose, productId }: CryptoPaymentDialogProps) {
+  const [contactMethod, setContactMethod] = useState<'discord' | 'phone' | 'signal' | 'email'>('discord');
+  const [contactValue, setContactValue] = useState('');
+  const [checkoutUrl, setCheckoutUrl] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const createCoinbaseCharge = async () => {
+      try {
+        const response = await fetch('/api/create-crypto-order', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            productId,
+            amount,
+            contactMethod,
+            contactValue
+          })
+        });
+
+        const data = await response.json();
+        setCheckoutUrl(data.checkoutUrl);
+      } catch (error) {
+        console.error('Error creating Coinbase charge:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (contactValue) {
+      createCoinbaseCharge();
+    }
+  }, [amount, productId, contactMethod, contactValue]);
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Cryptocurrency Payment</DialogTitle>
+          <DialogDescription>
+            Pay ${amount.toFixed(2)} using your preferred cryptocurrency
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <Label>How should we contact you?</Label>
+            <RadioGroup
+              value={contactMethod}
+              onValueChange={(value) => setContactMethod(value as typeof contactMethod)}
+              className="grid grid-cols-2 gap-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="discord" id="discord" />
+                <Label htmlFor="discord">Discord</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="phone" id="phone" />
+                <Label htmlFor="phone">Phone (EU)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="signal" id="signal" />
+                <Label htmlFor="signal">Signal</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="email" id="email" />
+                <Label htmlFor="email">Email</Label>
+              </div>
+            </RadioGroup>
+
+            <Input
+              placeholder={
+                contactMethod === 'discord' ? 'Username#0000' :
+                contactMethod === 'phone' ? '+44 123456789' :
+                contactMethod === 'signal' ? '+1234567890' :
+                'email@example.com'
+              }
+              value={contactValue}
+              onChange={(e) => setContactValue(e.target.value)}
+            />
+          </div>
+
+          {isLoading ? (
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+            </div>
+          ) : checkoutUrl ? (
+            <div className="space-y-4">
+              <Button 
+                className="w-full"
+                onClick={() => window.open(checkoutUrl, '_blank')}
+              >
+                Proceed to Coinbase Checkout
+              </Button>
+              <p className="text-sm text-muted-foreground text-center">
+                You will be redirected to Coinbase Commerce to complete your payment
+              </p>
+            </div>
+          ) : (
+            <Button 
+              className="w-full" 
+              onClick={() => setContactValue(contactValue)}
+              disabled={!contactValue}
+            >
+              Continue to Payment
+            </Button>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export function ServiceWizard() {
-  const [activeTab, setActiveTab] = useState('products');
-  const [step, setStep] = useState(1);
-  const [serviceType, setServiceType] = useState<ServiceType>('web');
-  const [projectSize, setProjectSize] = useState<ProjectSize>('small');
-  const [teamSize, setTeamSize] = useState(1);
-  const [duration, setDuration] = useState(1);
+  const [selectedTier, setSelectedTier] = useState<keyof typeof PRODUCT_TIERS>('starter');
+  const [complexity, setComplexity] = useState(0);
+  const [price, setPrice] = useState(PRODUCT_TIERS.starter.basePrice);
   const [downloadStates, setDownloadStates] = useState<Record<string, boolean>>({});
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState<{amount: number, productId: string} | null>(null);
 
-  const handleSoftwarePurchase = async (product: typeof SOFTWARE_PRODUCTS[0]) => {
-    try {
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          price: product.price,
-          type: 'software',
-          repo: product.repo
-        }),
-      });
-
-      const { sessionId } = await response.json();
-      const stripe = await stripePromise;
-      await stripe?.redirectToCheckout({ sessionId });
-    } catch (error) {
-      console.error('Error:', error);
-    }
+  const calculatePrice = (tier: keyof typeof PRODUCT_TIERS, complexityLevel: number) => {
+    const { basePrice, maxPrice } = PRODUCT_TIERS[tier];
+    const range = maxPrice - basePrice;
+    return basePrice + (range * (complexityLevel / 100));
   };
 
-  const handleDownload = async (product: typeof SOFTWARE_PRODUCTS[0], sessionId: string) => {
-    try {
-      setDownloadStates(prev => ({ ...prev, [product.id]: true }));
-      
-      const response = await fetch('/api/download', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          repoName: product.repo,
-          sessionId
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Download failed');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${product.repo}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Download error:', error);
-    } finally {
-      setDownloadStates(prev => ({ ...prev, [product.id]: false }));
-    }
+  const handleComplexityChange = (value: number[]) => {
+    setComplexity(value[0]);
+    setPrice(calculatePrice(selectedTier, value[0]));
   };
 
-  const calculateCustomPrice = () => {
-    const basePrice = CUSTOM_SERVICE_TYPES[serviceType].base;
-    const sizeMultiplier = {
-      small: 1,
-      medium: 1.5,
-      large: 2,
-    }[projectSize];
-
-    return basePrice * sizeMultiplier * teamSize * duration;
+  const handleSoftwarePurchase = async (product: typeof PRODUCT_TIERS[keyof typeof PRODUCT_TIERS]) => {
+    setPaymentDetails({
+      amount: product.basePrice,
+      productId: product.name
+    });
+    setShowPayment(true);
   };
 
-  const handleCustomCheckout = async () => {
-    try {
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          serviceType,
-          projectSize,
-          teamSize,
-          duration,
-          price: calculateCustomPrice(),
-          type: 'custom',
-        }),
-      });
-
-      const { sessionId } = await response.json();
-      const stripe = await stripePromise;
-      await stripe?.redirectToCheckout({ sessionId });
-    } catch (error) {
-      console.error('Error:', error);
-    }
+  const handlePurchase = async (tier: keyof typeof PRODUCT_TIERS, finalPrice: number) => {
+    setPaymentDetails({
+      amount: finalPrice,
+      productId: `custom-${tier}`
+    });
+    setShowPayment(true);
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 mb-8">
-          <TabsTrigger value="products">Software Products</TabsTrigger>
-          <TabsTrigger value="custom">Custom Development</TabsTrigger>
-        </TabsList>
+    <>
+      <div className="max-w-4xl mx-auto">
+        <Tabs defaultValue="products">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="products">Ready-Made Tools</TabsTrigger>
+            <TabsTrigger value="custom">Build Your Tool</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="products">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {SOFTWARE_PRODUCTS.map((product) => (
-              <Card key={product.id} className="p-6">
-                <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
-                <p className="text-muted-foreground mb-4">{product.description}</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold">${product.price}</span>
-                  <Button 
-                    onClick={() => handleSoftwarePurchase(product)}
-                    disabled={downloadStates[product.id]}
-                  >
-                    {downloadStates[product.id] ? (
-                      <>
-                        <Download className="mr-2 h-4 w-4 animate-spin" />
-                        Downloading...
-                      </>
-                    ) : (
-                      'Purchase'
-                    )}
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="custom">
-          <Card className="p-6">
-            <div className="space-y-8">
-              {step === 1 && (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4">What type of service do you need?</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(CUSTOM_SERVICE_TYPES).map(([type, { title }]) => (
-                      <Button
-                        key={type}
-                        variant={serviceType === type ? "default" : "outline"}
-                        className="h-24"
-                        onClick={() => setServiceType(type as ServiceType)}
-                      >
-                        {title}
-                      </Button>
-                    ))}
+          <TabsContent value="products">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Object.values(PRODUCT_TIERS).map((category) => (
+                <Card key={category.name} className="p-6">
+                  <h3 className="text-xl font-semibold mb-2">{category.name}</h3>
+                  <p className="text-muted-foreground mb-4">{category.description}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-2xl font-bold">${category.basePrice} - ${category.maxPrice}</span>
+                    <Button 
+                      onClick={() => handleSoftwarePurchase(category)}
+                      disabled={downloadStates[category.name]}
+                    >
+                      {downloadStates[category.name] ? (
+                        <>
+                          <Download className="mr-2 h-4 w-4 animate-spin" />
+                          Downloading...
+                        </>
+                      ) : (
+                        'Purchase'
+                      )}
+                    </Button>
                   </div>
-                </div>
-              )}
-
-              {step === 2 && (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4">Project Size</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {['small', 'medium', 'large'].map((size) => (
-                      <Button
-                        key={size}
-                        variant={projectSize === size ? "default" : "outline"}
-                        className="h-24"
-                        onClick={() => setProjectSize(size as ProjectSize)}
-                      >
-                        {size.charAt(0).toUpperCase() + size.slice(1)}
-                        <br />
-                        {size === 'small' ? '1-3 months' : size === 'medium' ? '3-6 months' : '6+ months'}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {step === 3 && (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4">Team Size</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    {[1, 2, 3, 4, 5].map((size) => (
-                      <Button
-                        key={size}
-                        variant={teamSize === size ? "default" : "outline"}
-                        onClick={() => setTeamSize(size)}
-                      >
-                        {size} Dev{size > 1 ? 's' : ''}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {step === 4 && (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4">Project Duration</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[1, 3, 6, 12].map((months) => (
-                      <Button
-                        key={months}
-                        variant={duration === months ? "default" : "outline"}
-                        onClick={() => setDuration(months)}
-                      >
-                        {months} Month{months > 1 ? 's' : ''}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {step === 5 && (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4">Project Summary</h2>
-                  <div className="space-y-4">
-                    <p>Service Type: {CUSTOM_SERVICE_TYPES[serviceType].title}</p>
-                    <p>Project Size: {projectSize.charAt(0).toUpperCase() + projectSize.slice(1)}</p>
-                    <p>Team Size: {teamSize} developer{teamSize > 1 ? 's' : ''}</p>
-                    <p>Duration: {duration} month{duration > 1 ? 's' : ''}</p>
-                    <p className="text-2xl font-bold">
-                      Estimated Price: ${calculateCustomPrice().toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-between pt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => setStep(step - 1)}
-                  disabled={step === 1}
-                >
-                  Previous
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (step === 5) {
-                      handleCustomCheckout();
-                    } else {
-                      setStep(step + 1);
-                    }
-                  }}
-                >
-                  {step === 5 ? 'Proceed to Payment' : 'Next'}
-                </Button>
-              </div>
+                </Card>
+              ))}
             </div>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+          </TabsContent>
+
+          <TabsContent value="custom">
+            <Card>
+              <CardHeader>
+                <CardTitle>Build Your Custom Tool</CardTitle>
+                <CardDescription>
+                  Adjust the complexity level to match your needs. All tools include a 30-day warranty.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4">
+                  {Object.entries(PRODUCT_TIERS).map(([key, tier]) => (
+                    <div 
+                      key={key}
+                      className={`p-4 rounded-lg border cursor-pointer transition-colors ${
+                        selectedTier === key ? 'border-primary bg-primary/5' : 'hover:border-primary/50'
+                      }`}
+                      onClick={() => {
+                        setSelectedTier(key as keyof typeof PRODUCT_TIERS);
+                        setPrice(calculatePrice(key as keyof typeof PRODUCT_TIERS, complexity));
+                      }}
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold">{tier.name}</h3>
+                        <span className="text-sm text-muted-foreground">
+                          ${tier.basePrice} - ${tier.maxPrice}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{tier.description}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-sm font-medium">
+                    Complexity Level: {complexity}%
+                  </label>
+                  <Slider
+                    value={[complexity]}
+                    min={0}
+                    max={100}
+                    step={10}
+                    onValueChange={handleComplexityChange}
+                  />
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Basic</span>
+                    <span>Complex</span>
+                  </div>
+                </div>
+
+                <div className="bg-muted p-4 rounded-lg space-y-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold">${price.toFixed(2)}</div>
+                    <p className="text-sm text-muted-foreground">Final Price</p>
+                  </div>
+                  <div className="text-sm space-y-2">
+                    <p className="font-medium">Included in your custom tool:</p>
+                    <ul className="list-disc list-inside text-muted-foreground">
+                      {PRODUCT_TIERS[selectedTier].examples.map((example, i) => (
+                        <li key={i}>{example}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <Button className="w-full" onClick={() => handlePurchase(selectedTier, price)}>
+                  Start Building
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+      {showPayment && paymentDetails && (
+        <CryptoPaymentDialog
+          amount={paymentDetails.amount}
+          productId={paymentDetails.productId}
+          onClose={() => setShowPayment(false)}
+        />
+      )}
+    </>
   );
 }

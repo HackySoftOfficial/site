@@ -1,20 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { auth } from '@/lib/firebase/client';
+import { useAuth } from "@/components/admin/auth-provider";
 
 interface Order {
   id: string;
-  customer: {
-    name: string;
-    email: string;
-  };
-  product: {
-    name: string;
-    price: number;
-  };
+  customerName: string;
+  customerEmail: string;
+  productName: string;
+  productPrice: number;
   status: "pending" | "completed" | "failed";
-  createdAt: any;
+  createdAt: number;
 }
 
 interface Filters {
@@ -26,29 +22,25 @@ interface Filters {
 export function useOrders(filters: Filters) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchOrders = async () => {
       setIsLoading(true);
       try {
-        const idToken = await auth.currentUser?.getIdToken();
-        if (!idToken) throw new Error('No auth token');
-
         const queryParams = new URLSearchParams({
           status: filters.status,
           dateRange: filters.dateRange,
-          search: filters.search
+          search: filters.search,
         });
 
-        const response = await fetch(`/api/orders?${queryParams}`, {
+        const response = await fetch(`/api/admin/orders?${queryParams}`, {
           headers: {
-            Authorization: `Bearer ${idToken}`
-          }
+            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+          },
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch orders');
-        }
+        if (!response.ok) throw new Error('Failed to fetch orders');
 
         const data = await response.json();
         setOrders(data.orders);
@@ -59,8 +51,10 @@ export function useOrders(filters: Filters) {
       }
     };
 
-    fetchOrders();
-  }, [filters]);
+    if (user) {
+      fetchOrders();
+    }
+  }, [filters, user]);
 
   return { orders, isLoading };
 }

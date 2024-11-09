@@ -1,0 +1,37 @@
+name = "your-project-name"
+compatibility_date = "2024-01-01"
+
+[vars]
+COINBASE_COMMERCE_API_KEY = ""
+NEXT_PUBLIC_BASE_URL = ""
+CLOUDFLARE_TEAM_NAME = "your-team-name"
+CLOUDFLARE_AUD_TAG = "your-application-aud"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "orders-db"
+database_id = "" # You'll get this from Cloudflare dashboard
+
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "HackySoftX-storage"
+
+[[kv_namespaces]]
+binding = "ORDERS_KV"
+id = "" # You'll get this from Cloudflare dashboard
+preview_id = "" # You'll get this from Cloudflare dashboard
+
+[site]
+bucket = "./public"
+
+[build]
+command = "npm run build"
+upload.format = "service-worker"
+
+[env.production]
+workers_dev = false
+route = "your-domain.com/*"
+zone_id = "your-zone-id"
+
+[triggers]
+crons = []

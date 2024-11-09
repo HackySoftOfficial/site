@@ -3,8 +3,7 @@ export const runtime = 'edge';
 
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { adminAuth, adminDb } from "@/lib/firebase/admin";
-import { CollectionReference, Query, DocumentData } from "firebase-admin/firestore";
+import { getAuthUser } from "@/lib/cloudflare/auth";
 
 interface Order {
   id: string;
@@ -17,36 +16,34 @@ interface Order {
     price: number;
   };
   status: "pending" | "completed" | "failed";
-  createdAt: FirebaseFirestore.Timestamp;
+  createdAt: string;
 }
 
 export async function GET(request: Request) {
   try {
-    // Verify admin authentication
     const headersList = headers();
-    const authToken = headersList.get("authorization")?.split("Bearer ")[1];
+    const token = headersList.get("cf-access-jwt-assertion");
 
-    if (!authToken) {
+    if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const decodedToken = await adminAuth.verifyIdToken(authToken);
-    const userRecord = await adminAuth.getUser(decodedToken.uid);
+    const user = getAuthUser(token);
 
-    if (!userRecord.customClaims?.admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get query parameters
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const dateRange = searchParams.get("dateRange");
     const search = searchParams.get("search");
 
-    let query: Query<DocumentData> = adminDb.collection("orders");
+    const ordersList = await ORDERS_KV.list({ prefix: "order_" });
+    const orderPromises = ordersList.keys.map(key => 
+      ORDERS_KV.get(key.name, { type: 'json' })
+    );
+    let orders = (await Promise.all(orderPromises)) as Order[];
 
+    // Apply filters
     if (status && status !== "all") {
-      query = query.where("status", "==", status);
+      orders = orders.filter(order => order.status === status);
     }
 
     if (dateRange && dateRange !== "all") {
@@ -65,26 +62,24 @@ export async function GET(request: Request) {
           break;
       }
 
-      query = query.where("createdAt", ">=", startDate);
+      orders = orders.filter(order => 
+        new Date(order.createdAt) >= startDate
+      );
     }
 
-    query = query.orderBy("createdAt", "desc");
-    const snapshot = await query.get();
-    const orders = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Order[];
+    // Sort by createdAt desc
+    orders.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
 
     // Apply search filter if provided
     if (search) {
       const searchLower = search.toLowerCase();
-      return NextResponse.json({
-        orders: orders.filter(order => 
-          order.customer?.name?.toLowerCase().includes(searchLower) ||
-          order.customer?.email?.toLowerCase().includes(searchLower) ||
-          order.id.toLowerCase().includes(searchLower)
-        )
-      });
+      orders = orders.filter(order => 
+        order.customer.name.toLowerCase().includes(searchLower) ||
+        order.customer.email.toLowerCase().includes(searchLower) ||
+        order.id.toLowerCase().includes(searchLower)
+      );
     }
 
     return NextResponse.json({ orders });

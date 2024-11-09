@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-
-export const dynamic = 'force-dynamic';
-export const runtime = 'edge';
+import { createDb } from '@/lib/db';
+import { orders } from '@/lib/db/schema';
+import { nanoid } from 'nanoid';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -11,6 +11,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
+    const db = createDb(process.env.DB as unknown as D1Database);
+
+    const orderId = nanoid();
+    const now = Date.now();
 
     if (data.type === 'software') {
       const session = await stripe.checkout.sessions.create({
@@ -30,6 +34,24 @@ export async function POST(req: Request) {
         mode: 'payment',
         success_url: `${process.env.NEXT_PUBLIC_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.NEXT_PUBLIC_URL}/services`,
+        metadata: {
+          orderId,
+          productId: data.productId,
+          type: 'software',
+        },
+      });
+
+      await db.insert(orders).values({
+        id: orderId,
+        customerId: session.customer as string,
+        customerName: '', // Will be updated after payment
+        customerEmail: '', // Will be updated after payment
+        productId: data.productId,
+        productName: data.productId,
+        productPrice: Math.round(data.price * 100),
+        status: 'pending',
+        createdAt: now,
+        updatedAt: now,
       });
 
       return NextResponse.json({ sessionId: session.id });
@@ -56,6 +78,27 @@ export async function POST(req: Request) {
         mode: 'payment',
         success_url: `${process.env.NEXT_PUBLIC_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.NEXT_PUBLIC_URL}/services`,
+        metadata: {
+          orderId,
+          type: 'custom',
+          serviceType: data.serviceType,
+          projectSize: data.projectSize,
+          teamSize: data.teamSize,
+          duration: data.duration,
+        },
+      });
+
+      await db.insert(orders).values({
+        id: orderId,
+        customerId: session.customer as string,
+        customerName: '', // Will be updated after payment
+        customerEmail: '', // Will be updated after payment
+        productId: `custom_${data.serviceType}`,
+        productName: `${data.serviceType.toUpperCase()} Development Service`,
+        productPrice: Math.round(data.price * 100),
+        status: 'pending',
+        createdAt: now,
+        updatedAt: now,
       });
 
       return NextResponse.json({ sessionId: session.id });

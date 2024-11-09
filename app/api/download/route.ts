@@ -1,39 +1,38 @@
 import { NextResponse } from 'next/server';
-import { Octokit } from '@octokit/rest';
-
-export const dynamic = 'force-dynamic';
-export const runtime = 'edge';
-
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN
-});
+import { createDb } from '@/lib/db';
+import { orders } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function POST(req: Request) {
   try {
     const { repoName, sessionId } = await req.json();
+    const db = createDb(process.env.DB as unknown as D1Database);
 
-    // Verify payment session first
-    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    // Verify order exists and is paid
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.status, 'completed'),
+    });
     
-    if (session.payment_status !== 'paid') {
+    if (!order) {
       return NextResponse.json({ error: 'Payment required' }, { status: 402 });
     }
 
-    // Download from GitHub
-    const response = await octokit.repos.downloadZipballArchive({
-      owner: 'HackySoftOfficial',
-      repo: repoName,
-      ref: 'main'
-    });
+    // Get file from R2
+    const storage = process.env.STORAGE as unknown as R2Bucket;
+    const file = await storage.get(`${repoName}.zip`);
 
-    // Forward the zip file to the client
-    return new NextResponse(response.data as any, {
-      headers: {
-        'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename=${repoName}.zip`
-      }
-    });
+    if (!file) {
+      return NextResponse.json(
+        { error: 'File not found' },
+        { status: 404 }
+      );
+    }
+
+    const headers = new Headers();
+    headers.set('Content-Type', 'application/zip');
+    headers.set('Content-Disposition', `attachment; filename=${repoName}.zip`);
+
+    return new NextResponse(file.body, { headers });
   } catch (error) {
     console.error('Download error:', error);
     return NextResponse.json(

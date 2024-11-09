@@ -12,7 +12,7 @@ export function Navbar() {
             <NavigationMenuItem>
               <Link href="/" legacyBehavior passHref>
                 <NavigationMenuLink className="font-bold">
-                  DevForge
+                  HackySoftX
                 </NavigationMenuLink>
               </Link>
             </NavigationMenuItem>

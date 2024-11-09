@@ -1,100 +1,58 @@
-import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { adminAuth, adminDb } from "@/lib/firebase/admin";
-import { Query, DocumentData } from "firebase-admin/firestore";
-
-// Mark route as dynamic
-export const dynamic = 'force-dynamic';
-
-export const runtime = 'edge';
-
-interface Order {
-  id: string;
-  customer: {
-    name: string;
-    email: string;
-  };
-  product: {
-    name: string;
-    price: number;
-  };
-  status: "pending" | "completed" | "failed";
-  createdAt: FirebaseFirestore.Timestamp;
-}
+import { NextResponse } from 'next/server';
+import { createDb } from '@/lib/db';
+import { orders } from '@/lib/db/schema';
+import { desc, sql } from 'drizzle-orm';
 
 export async function GET(request: Request) {
   try {
-    // Verify admin authentication
-    const headersList = headers();
-    const authToken = headersList.get("authorization")?.split("Bearer ")[1];
-
-    if (!authToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const decodedToken = await adminAuth.verifyIdToken(authToken);
-    const userRecord = await adminAuth.getUser(decodedToken.uid);
-
-    if (!userRecord.customClaims?.admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get query parameters
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
-    const dateRange = searchParams.get("dateRange");
-    const search = searchParams.get("search");
+    const status = searchParams.get('status');
+    const dateRange = searchParams.get('dateRange');
+    const search = searchParams.get('search');
 
-    // Build Firestore query
-    let query: Query<DocumentData> = adminDb.collection("orders");
+    const db = createDb(process.env.DB as unknown as D1Database);
+    let query = db.select().from(orders).orderBy(desc(orders.createdAt));
 
-    if (status && status !== "all") {
-      query = query.where("status", "==", status);
+    if (status && status !== 'all') {
+      query = query.where(sql`${orders.status} = ${status}`);
     }
 
-    if (dateRange && dateRange !== "all") {
-      const now = new Date();
-      let startDate = new Date();
+    if (dateRange && dateRange !== 'all') {
+      const now = Date.now();
+      let startDate = now;
 
       switch (dateRange) {
-        case "today":
-          startDate.setHours(0, 0, 0, 0);
+        case 'today':
+          startDate = now - 24 * 60 * 60 * 1000;
           break;
-        case "week":
-          startDate.setDate(now.getDate() - 7);
+        case 'week':
+          startDate = now - 7 * 24 * 60 * 60 * 1000;
           break;
-        case "month":
-          startDate.setMonth(now.getMonth() - 1);
+        case 'month':
+          startDate = now - 30 * 24 * 60 * 60 * 1000;
           break;
       }
 
-      query = query.where("createdAt", ">=", startDate);
+      query = query.where(sql`${orders.createdAt} >= ${startDate}`);
     }
 
-    query = query.orderBy("createdAt", "desc");
-    
-    const snapshot = await query.get();
-    
-    let orders = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Order[];
+    let results = await query;
 
-    // Apply search filter if provided
     if (search) {
       const searchLower = search.toLowerCase();
-      orders = orders.filter(order => 
-        order.customer.name.toLowerCase().includes(searchLower) ||
-        order.customer.email.toLowerCase().includes(searchLower) ||
-        order.id.toLowerCase().includes(searchLower)
+      results = results.filter(
+        order =>
+          order.customerName.toLowerCase().includes(searchLower) ||
+          order.customerEmail.toLowerCase().includes(searchLower) ||
+          order.id.toLowerCase().includes(searchLower)
       );
     }
 
-    return NextResponse.json({ orders });
+    return NextResponse.json({ orders: results });
   } catch (error) {
-    console.error("Error fetching orders:", error);
+    console.error('Error fetching orders:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

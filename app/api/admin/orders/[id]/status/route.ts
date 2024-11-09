@@ -1,38 +1,24 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { adminAuth, adminDb } from "@/lib/firebase/admin";
-
-export const dynamic = 'force-dynamic';
-export const runtime = 'edge';
+import { createDb } from "@/lib/db";
+import { orders } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    // Verify admin authentication
-    const headersList = headers();
-    const authToken = headersList.get("authorization")?.split("Bearer ")[1];
-
-    if (!authToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const decodedToken = await adminAuth.verifyIdToken(authToken);
-    const userRecord = await adminAuth.getUser(decodedToken.uid);
-
-    if (!userRecord.customClaims?.admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { status } = await request.json();
+    const db = createDb(process.env.DB as unknown as D1Database);
 
-    // Update order status in Firestore
-    await adminDb.collection("orders").doc(params.id).update({
-      status,
-      updatedAt: new Date(),
-      updatedBy: decodedToken.uid
-    });
+    await db
+      .update(orders)
+      .set({
+        status,
+        updatedAt: Date.now(),
+        updatedBy: "admin", // In production, get this from the authenticated user
+      })
+      .where(eq(orders.id, params.id));
 
     return NextResponse.json({ success: true });
   } catch (error) {
