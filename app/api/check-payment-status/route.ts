@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import type { Order } from '@/lib/db';
 
 export async function GET(req: Request) {
   try {
@@ -12,7 +14,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const order = await ORDERS_KV.get(orderId, { type: 'json' });
+    const order = await db.orders.findFirst(orderId);
 
     if (!order) {
       return NextResponse.json(

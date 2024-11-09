@@ -54,6 +54,11 @@ interface CryptoPaymentDialogProps {
   productId: string;
 }
 
+interface CryptoOrderResponse {
+  checkoutUrl: string;
+  orderId: string;
+}
+
 function CryptoPaymentDialog({ amount, onClose, productId }: CryptoPaymentDialogProps) {
   const [contactMethod, setContactMethod] = useState<'discord' | 'phone' | 'signal' | 'email'>('discord');
   const [contactValue, setContactValue] = useState('');
@@ -76,7 +81,7 @@ function CryptoPaymentDialog({ amount, onClose, productId }: CryptoPaymentDialog
           })
         });
 
-        const data = await response.json();
+        const data = await response.json() as CryptoOrderResponse;
         setCheckoutUrl(data.checkoutUrl);
       } catch (error) {
         console.error('Error creating Coinbase charge:', error);

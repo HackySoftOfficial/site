@@ -1,5 +1,8 @@
+/// <reference types="@cloudflare/workers-types" />
+
 declare global {
   const ORDERS_KV: KVNamespace;
+  const DB: D1Database;
 }
 
 export interface Order {
@@ -7,12 +10,20 @@ export interface Order {
   productId: string;
   amount: number;
   status: 'pending' | 'completed' | 'cancelled';
+  createdAt: number;
+  updatedAt: number;
+  customerEmail?: string;
+  customerName?: string;
   coinbaseChargeId?: string;
   contactMethod?: string;
   contactValue?: string;
   transactionHash?: string;
-  createdAt: number;
-  updatedAt: number;
+  metadata?: {
+    serviceType?: string;
+    projectSize?: string;
+    teamSize?: string;
+    duration?: string;
+  };
 }
 
 export const db = {

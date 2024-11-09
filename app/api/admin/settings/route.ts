@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 
+interface SiteSettings {
+  siteName: string;
+  supportEmail: string;
+  enableNotifications: boolean;
+  apiKey: string;
+}
+
 export async function POST(req: Request) {
   try {
-    const data = await req.json();
+    const data = await req.json() as SiteSettings;
     
     // Save settings to Cloudflare KV
     await ORDERS_KV.put('site-settings', JSON.stringify(data));
@@ -20,15 +27,16 @@ export async function POST(req: Request) {
 export async function GET() {
   try {
     // Get settings from Cloudflare KV
-    const settings = await ORDERS_KV.get('site-settings', { type: 'json' });
+    const settings = await ORDERS_KV.get('site-settings', { type: 'json' }) as SiteSettings | null;
     
     if (!settings) {
-      return NextResponse.json({
+      const defaultSettings: SiteSettings = {
         siteName: '',
         supportEmail: '',
         enableNotifications: false,
         apiKey: '',
-      });
+      };
+      return NextResponse.json(defaultSettings);
     }
     
     return NextResponse.json(settings);

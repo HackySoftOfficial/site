@@ -8,6 +8,10 @@ interface AuthContextType {
   user: { email: string } | null;
 }
 
+interface AuthResponse {
+  user: { email: string } | null;
+}
+
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isLoading: true,
@@ -23,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const response = await fetch('/api/auth/me');
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json() as AuthResponse;
           setUser(data.user);
         }
       } catch (error) {
@@ -47,4 +51,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext); 
+export const useAuth = () => useContext(AuthContext);

@@ -10,6 +10,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useState, useEffect } from "react";
 
+interface SiteSettings {
+  siteName: string;
+  supportEmail: string;
+  enableNotifications: boolean;
+  apiKey: string;
+}
+
 const settingsFormSchema = z.object({
   siteName: z.string().min(2).max(50),
   supportEmail: z.string().email(),
@@ -40,7 +47,7 @@ export default function SettingsPage() {
       try {
         const response = await fetch('/api/admin/settings');
         if (!response.ok) throw new Error('Failed to fetch settings');
-        const data = await response.json();
+        const data = await response.json() as SiteSettings;
         form.reset(data);
       } catch (error) {
         console.error('Error fetching settings:', error);

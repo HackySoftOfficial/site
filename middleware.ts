@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyAccessJWT } from './lib/cloudflare/auth';
+import { verifyAccessJWT } from '@/lib/cloudflare/auth';
 
 export async function middleware(request: NextRequest) {
   // Skip authentication for public routes

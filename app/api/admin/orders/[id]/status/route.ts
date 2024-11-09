@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
+import { Order } from "@/lib/db";
+
+interface UpdateStatusRequest {
+  status: Order['status'];
+}
 
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const { status } = await request.json();
+    const { status } = await request.json() as UpdateStatusRequest;
 
     // Update order status in KV
-    const order = await ORDERS_KV.get(params.id, { type: 'json' });
+    const order = await ORDERS_KV.get(params.id, { type: 'json' }) as Order | null;
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }

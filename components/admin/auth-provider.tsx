@@ -9,6 +9,10 @@ interface AuthContextType {
   error: Error | undefined;
 }
 
+interface AuthResponse {
+  user: { email: string } | null;
+}
+
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
@@ -22,7 +26,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const response = await fetch('/api/auth/me');
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json() as AuthResponse;
           setUser(data.user);
         } else {
           // Redirect to Cloudflare Access login
