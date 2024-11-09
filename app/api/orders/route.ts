@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
-import { Query, DocumentData } from "firebase-admin/firestore";
-
-// Mark route as dynamic
-export const dynamic = 'force-dynamic';
+import { CollectionReference, Query, DocumentData } from "firebase-admin/firestore";
 
 interface Order {
   id: string;
@@ -43,7 +40,6 @@ export async function GET(request: Request) {
     const dateRange = searchParams.get("dateRange");
     const search = searchParams.get("search");
 
-    // Build Firestore query
     let query: Query<DocumentData> = adminDb.collection("orders");
 
     if (status && status !== "all") {
@@ -70,10 +66,8 @@ export async function GET(request: Request) {
     }
 
     query = query.orderBy("createdAt", "desc");
-    
     const snapshot = await query.get();
-    
-    let orders = snapshot.docs.map(doc => ({
+    const orders = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as Order[];
@@ -81,11 +75,13 @@ export async function GET(request: Request) {
     // Apply search filter if provided
     if (search) {
       const searchLower = search.toLowerCase();
-      orders = orders.filter(order => 
-        order.customer.name.toLowerCase().includes(searchLower) ||
-        order.customer.email.toLowerCase().includes(searchLower) ||
-        order.id.toLowerCase().includes(searchLower)
-      );
+      return NextResponse.json({
+        orders: orders.filter(order => 
+          order.customer?.name?.toLowerCase().includes(searchLower) ||
+          order.customer?.email?.toLowerCase().includes(searchLower) ||
+          order.id.toLowerCase().includes(searchLower)
+        )
+      });
     }
 
     return NextResponse.json({ orders });
@@ -96,4 +92,4 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-}
+} 

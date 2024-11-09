@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, orderBy, getDocs, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
+import { auth } from '@/lib/firebase/client';
 
 interface Order {
   id: string;
@@ -15,7 +14,7 @@ interface Order {
     price: number;
   };
   status: "pending" | "completed" | "failed";
-  createdAt: Timestamp;
+  createdAt: any;
 }
 
 interface Filters {
@@ -32,51 +31,27 @@ export function useOrders(filters: Filters) {
     const fetchOrders = async () => {
       setIsLoading(true);
       try {
-        let q = collection(db, "orders");
+        const idToken = await auth.currentUser?.getIdToken();
+        if (!idToken) throw new Error('No auth token');
 
-        // Build query based on filters
-        if (filters.status && filters.status !== "all") {
-          q = query(q, where("status", "==", filters.status));
-        }
+        const queryParams = new URLSearchParams({
+          status: filters.status,
+          dateRange: filters.dateRange,
+          search: filters.search
+        });
 
-        if (filters.dateRange && filters.dateRange !== "all") {
-          const now = new Date();
-          let startDate = new Date();
-
-          switch (filters.dateRange) {
-            case "today":
-              startDate.setHours(0, 0, 0, 0);
-              break;
-            case "week":
-              startDate.setDate(now.getDate() - 7);
-              break;
-            case "month":
-              startDate.setMonth(now.getMonth() - 1);
-              break;
+        const response = await fetch(`/api/orders?${queryParams}`, {
+          headers: {
+            Authorization: `Bearer ${idToken}`
           }
+        });
 
-          q = query(q, where("createdAt", ">=", Timestamp.fromDate(startDate)));
+        if (!response.ok) {
+          throw new Error('Failed to fetch orders');
         }
 
-        q = query(q, orderBy("createdAt", "desc"));
-
-        const snapshot = await getDocs(q);
-        let fetchedOrders = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as Order));
-
-        // Apply search filter if provided
-        if (filters.search) {
-          const searchLower = filters.search.toLowerCase();
-          fetchedOrders = fetchedOrders.filter(order => 
-            order.customer.name.toLowerCase().includes(searchLower) ||
-            order.customer.email.toLowerCase().includes(searchLower) ||
-            order.id.toLowerCase().includes(searchLower)
-          );
-        }
-
-        setOrders(fetchedOrders);
+        const data = await response.json();
+        setOrders(data.orders);
       } catch (error) {
         console.error("Error fetching orders:", error);
       } finally {

@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export": "firebase deploy --only hosting",
+    "clean": "rimraf .next out",
+    "clean:all": "rimraf .next out node_modules"
   },
   "dependencies": {
     "@hcaptcha/react-hcaptcha": "^1.8.1",
@@ -51,14 +54,14 @@
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
     "eslint": "8.49.0",
-    "eslint-config-next": "13.5.1",
+    "eslint-config-next": "14.1.0",
     "firebase": "^10.8.0",
     "firebase-admin": "^12.0.0",
     "framer-motion": "^10.18.0",
     "input-otp": "^1.2.4",
     "jose": "^5.2.3",
     "lucide-react": "^0.446.0",
-    "next": "13.5.1",
+    "next": "14.1.0",
     "next-themes": "^0.3.0",
     "node-fetch": "^3.3.2",
     "postcss": "8.4.30",
@@ -75,9 +78,13 @@
     "tailwindcss": "3.3.3",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "5.2.2",
+    "undici": "5.28.3",
     "vaul": "^0.9.9",
     "zod": "^3.23.8",
     "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5"
   },
   "packageManager": "pnpm@9.12.2+sha512.22721b3a11f81661ae1ec68ce1a7b879425a1ca5b991c975b074ac220b187ce56c708fe5db69f4c962c989452eee76c82877f4ee80f474cebd61ee13461b6228"
 }

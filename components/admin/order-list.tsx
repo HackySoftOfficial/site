@@ -25,7 +25,7 @@ interface Order {
     price: number;
   };
   status: "pending" | "completed" | "failed";
-  createdAt: string;
+  createdAt: any;
 }
 
 interface OrderListProps {
@@ -78,7 +78,9 @@ export function OrderList({ orders, isLoading }: OrderListProps) {
                   <OrderStatusBadge status={order.status} />
                 </TableCell>
                 <TableCell>
-                  {new Date(order.createdAt).toLocaleDateString()}
+                  {order.createdAt?.toDate?.() 
+                    ? order.createdAt.toDate().toLocaleDateString()
+                    : new Date(order.createdAt).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
                   <Button

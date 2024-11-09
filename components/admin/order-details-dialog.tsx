@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, Mail } from "lucide-react";
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 interface Order {
   id: string;
@@ -21,7 +22,7 @@ interface Order {
     price: number;
   };
   status: "pending" | "completed" | "failed";
-  createdAt: string;
+  createdAt: any; // This will be Timestamp from Firestore
 }
 
 interface OrderDetailsDialogProps {
@@ -32,19 +33,20 @@ interface OrderDetailsDialogProps {
 export function OrderDetailsDialog({ order, onClose }: OrderDetailsDialogProps) {
   if (!order) return null;
 
-  const handleStatusUpdate = async (newStatus: Order["status"]) => {
+  const functions = getFunctions();
+  const updateOrderStatusFunction = httpsCallable(functions, 'updateOrderStatus');
+
+  const handleStatusUpdate = async (newStatus: string) => {
     try {
-      const response = await fetch(`/api/admin/orders/${order.id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+      await updateOrderStatusFunction({
+        orderId: order.id,
+        status: newStatus
       });
-
-      if (!response.ok) throw new Error("Failed to update status");
-
-      // Refresh order data or update local state
+      
+      // Handle success (maybe refresh orders or show toast)
     } catch (error) {
       console.error("Error updating order status:", error);
+      // Handle error
     }
   };
 

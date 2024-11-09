@@ -5,13 +5,28 @@ const nextConfig = {
   },
   images: { unoptimized: true },
   webpack: (config) => {
-    // Add transpilePackages to handle private class fields
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'undici': false // Disable undici to use node-fetch instead
+    config.resolve = {
+      ...config.resolve,
+      preferRelative: true,
+      alias: {
+        ...config.resolve.alias,
+        undici: false
+      },
+      fallback: {
+        ...config.resolve.fallback,
+        "http": false,
+        "https": false,
+        "url": false,
+        "zlib": false,
+        "net": false,
+        "path": false,
+        "stream": false,
+        "util": false,
+        "crypto": false
+      }
     };
     return config;
-  },
+  }
 };
 
 module.exports = nextConfig;
