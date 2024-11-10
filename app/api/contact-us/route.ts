@@ -1,19 +1,43 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+export const runtime = 'edge';
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const HCAPTCHA_SECRET = 'ES_ea1cceedb8f4415e8ac1dcce27dfa46e';
 
 const messageSchema = z.object({
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Invalid email address"),
   message: z.string().min(10, "Message must be at least 10 characters"),
+  hcaptchaToken: z.string().min(1, "hCaptcha token is required"),
 });
+
+async function verifyHcaptcha(token: string): Promise<boolean> {
+  const response = await fetch(`https://hcaptcha.com/siteverify`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      secret: HCAPTCHA_SECRET,
+      response: token,
+    }),
+  });
+  const data: { success: boolean } = await response.json(); // Explicitly define the type of data
+  return data.success;
+}
 
 export async function POST(request: Request) {
   try {
     // Parse and validate the incoming request body
     const body = await request.json();
-    const { name, email, message } = messageSchema.parse(body);
+    const { name, email, message, hcaptchaToken } = messageSchema.parse(body);
+
+    // Verify hCaptcha
+    const isHcaptchaValid = await verifyHcaptcha(hcaptchaToken);
+    if (!isHcaptchaValid) {
+      return NextResponse.json({ error: 'hCaptcha verification failed' }, { status: 400 });
+    }
 
     // Prepare the payload for the Discord webhook
     const payload = {
