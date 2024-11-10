@@ -16,7 +16,7 @@ export async function verifyTurnstileToken(token: string): Promise<boolean> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        secret: "0x4AAAAAAAzsP9F6rERuhc7Y-mKEYJRsB3k",
+        secret: "0x4AAAAAAAzsUvYHCn18A-lriGZhMNtCVFg",
         response: token,
       }),
     }
