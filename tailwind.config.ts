@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import { nextui } from "@nextui-org/react";
 
 const config: Config = {
   darkMode: ['class'],
@@ -6,6 +7,7 @@ const config: Config = {
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}'
   ],
   theme: {
     extend: {
@@ -78,13 +80,34 @@ const config: Config = {
             height: '0',
           },
         },
+        'sparkle': {
+          '0%, 100%': { opacity: 1 },
+          '50%': { opacity: 0.6 }
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'sparkle': 'sparkle 2s ease-in-out infinite'
+      },
+      backgroundColor: {
+        'glass': 'rgba(255, 255, 255, 0.08)',
+        'glass-dark': 'rgba(0, 0, 0, 0.08)',
+      },
+      boxShadow: {
+        'glass': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'glass-dark': '0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06)',
+      },
+      backdropSaturate: {
+        '125': '1.25',
+        '150': '1.5',
+        '175': '1.75',
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    nextui()
+  ],
 };
 export default config;

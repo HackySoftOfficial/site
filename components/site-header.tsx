@@ -1,5 +1,4 @@
 import { MainNav } from "@/components/main-nav";
-import { ModeToggle } from "@/components/mode-toggle";
 import Link from "next/link";
 
 export function SiteHeader() {
@@ -10,9 +9,6 @@ export function SiteHeader() {
           <span className="font-bold">HackySoft</span>
         </Link>
         <MainNav />
-        <div className="ml-auto border-l pl-4">
-          <ModeToggle />
-        </div>
       </div>
     </header>
   );
