@@ -50,7 +50,10 @@ export function ContactForm() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to send message');
+        const errorMessage = typeof result === 'object' && result !== null && 'error' in result
+          ? String(result.error) // Ensure error message is a string
+          : 'Failed to send message';
+        throw new Error(errorMessage);
       }
 
       toast({
