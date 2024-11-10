@@ -14,6 +14,14 @@ const routes = [
     label: "Services",
   },
   {
+    href: "/projects",
+    label: "Projects",
+  },
+  {
+    href: "/chat",
+    label: "Chat",
+  },
+  {
     href: "/contact",
     label: "Contact",
   },

@@ -13,9 +13,6 @@
     "monitor:payments": "tsx scripts/monitor-payments.ts"
   },
   "dependencies": {
-    "@azure-rest/ai-inference": "^1.0.0-beta.4",
-    "@azure/core-auth": "^1.4.0",
-    "@azure/core-sse": "^2.1.3",
     "@hookform/resolvers": "^3.9.0",
     "@mistralai/mistralai": "^1.3.0",
     "@next/swc-wasm-nodejs": "13.5.1",

@@ -15,12 +15,6 @@ bucket_name = "discord"
 binding = "ORDERS_KV"
 id = "49c455bf9c6641638394f672ed0dfca0"
 
-# Discord webhook binding using service bindings
-[[services]]
-binding = "DISCORD_WEBHOOK"
-service = "discord-webhook"
-environment = "production"
-
 [vars]
 NEXT_PUBLIC_BASE_URL = "https://hackysoft.xyz"
 NEXT_PUBLIC_PRODUCTS = '''
