@@ -39,14 +39,14 @@ export function HeroSection() {
                 </span>
               </div>
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
-                HackySoftX
+                HackySoft
               </h1>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
                 Two Python developers crafting powerful Discord tools and automation solutions that just work.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-6"> {/* Center align items */}
               <Button size="lg" asChild>
                 <Link href="/services">
                   View Tools <ArrowRight className="ml-2 h-4 w-4" />
