@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { OrderDetailsDialog } from "./order-details-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface Order {
+export interface Order {
   id: string;
   customer: {
     name: string;

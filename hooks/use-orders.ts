@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/admin/auth-provider";
-import type { Order } from "@/lib/db";
+import type { Order as DbOrder } from "@/lib/db";
+import type { Order as UIOrder } from "@/components/admin/order-list";
 
 interface Filters {
   status: string;
@@ -11,7 +12,7 @@ interface Filters {
 }
 
 export function useOrders(filters: Filters) {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<UIOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
@@ -32,28 +33,23 @@ export function useOrders(filters: Filters) {
         });
 
         if (!response.ok) throw new Error('Failed to fetch orders');
-        const data: { orders: any[] } = await response.json();
-        const transformedOrders = data.orders.map((order: any): Order => ({
+        const data: { orders: DbOrder[] } = await response.json();
+        
+        // Transform DB orders to UI orders
+        const transformedOrders = data.orders.map((order): UIOrder => ({
           id: order.id,
-          productId: order.productId,
-          amount: order.amount,
-          status: order.status,
-          createdAt: order.createdAt,
-          updatedAt: order.updatedAt,
           customer: {
-            name: order.customerName || order.contactValue || 'Unknown',
-            email: order.customerEmail || order.contactValue || 'Unknown',
+            name: order.customer.name,
+            email: order.customer.email,
           },
           product: {
-            name: order.productId,
-            price: order.amount,
+            name: order.product.name,
+            price: order.product.price,
           },
-          coinbaseChargeId: order.coinbaseChargeId,
-          contactMethod: order.contactMethod,
-          contactValue: order.contactValue,
-          transactionHash: order.transactionHash,
-          metadata: order.metadata,
+          status: order.status,
+          createdAt: new Date(order.createdAt).toISOString(),
         }));
+        
         setOrders(transformedOrders);
       } catch (error) {
         console.error("Error fetching orders:", error);
