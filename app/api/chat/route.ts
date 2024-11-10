@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 
+interface CloudflareAIResponse {
+  result: {
+    response: string;
+  };
+  success: boolean;
+  errors: string[];
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -19,12 +27,15 @@ export async function POST(req: Request) {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to get AI response');
+      throw new Error(`Failed to get AI response: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as CloudflareAIResponse;
     
-    // Return in the expected format
+    if (!data.result?.response) {
+      throw new Error('Invalid response format from AI service');
+    }
+    
     return NextResponse.json({
       result: {
         response: data.result.response

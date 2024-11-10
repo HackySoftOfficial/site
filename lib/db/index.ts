@@ -4,14 +4,17 @@ import type { Order } from './types';
 
 export type { Order };
 
+// In-memory storage
+const ordersStore = new Map<string, Order>();
+const pendingOrdersIndex = new Set<string>();
+
 export const db = {
   orders: {
     async create(order: Order) {
-      await ORDERS_KV.put(order.id, JSON.stringify(order));
+      ordersStore.set(order.id, order);
       // Store an index of pending orders for efficient querying
       if (order.status === 'pending') {
-        const pendingKey = `pending:${order.id}`;
-        await ORDERS_KV.put(pendingKey, '1');
+        pendingOrdersIndex.add(order.id);
       }
       return order;
     },
@@ -26,32 +29,24 @@ export const db = {
         updatedAt: Date.now()
       };
 
-      await ORDERS_KV.put(id, JSON.stringify(updated));
+      ordersStore.set(id, updated);
 
       // Update pending index if status changed
       if (data.status && data.status !== 'pending' && existing.status === 'pending') {
-        await ORDERS_KV.delete(`pending:${id}`);
+        pendingOrdersIndex.delete(id);
       }
 
       return updated;
     },
 
     async findFirst(id: string): Promise<Order | null> {
-      const data = await ORDERS_KV.get(id);
-      return data ? JSON.parse(data) : null;
+      return ordersStore.get(id) || null;
     },
 
     async findPending(): Promise<Order[]> {
-      const { keys } = await ORDERS_KV.list({ prefix: 'pending:' });
-      const orders: Order[] = [];
-      
-      for (const key of keys) {
-        const orderId = key.name.replace('pending:', '');
-        const order = await this.findFirst(orderId);
-        if (order) orders.push(order);
-      }
-
-      return orders;
+      return Array.from(pendingOrdersIndex)
+        .map(id => ordersStore.get(id))
+        .filter((order): order is Order => order !== undefined);
     }
   }
 };
