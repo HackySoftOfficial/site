@@ -230,6 +230,9 @@ importers:
       vaul:
         specifier: ^0.9.9
         version: 0.9.9(@types/react-dom@18.2.7)(@types/react@18.2.22)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      vc:
+        specifier: ^0.1.4
+        version: 0.1.4
       zod:
         specifier: ^3.23.8
         version: 3.23.8
@@ -4546,6 +4549,10 @@ packages:
     peerDependencies:
       react: ^16.8 || ^17.0 || ^18.0
       react-dom: ^16.8 || ^17.0 || ^18.0
+
+  vc@0.1.4:
+    resolution: {integrity: sha512-F1MOdLOauNe5Cu6AQ1gWBstMJe7bqwL3YeoAj3CPqb9JIig0UQkcrMjiB6648Ad+tRCWvViBSs5i5cgovKbE6A==}
+    hasBin: true
 
   vercel@37.14.0:
     resolution: {integrity: sha512-ZSEvhARyJBn4YnEVZULsvti8/OHd5txRCgJqEhNIyo/XXSvBJSvlCjA+SE1zraqn0rqyEOG3+56N3kh1Enk8Tg==}
@@ -9305,6 +9312,8 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - '@types/react-dom'
+
+  vc@0.1.4: {}
 
   vercel@37.14.0(encoding@0.1.13):
     dependencies:
