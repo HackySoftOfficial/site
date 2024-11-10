@@ -9,7 +9,7 @@ interface ContactFormData {
 }
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
-const TURNSTILE_SECRET_KEY = "0x4AAAAAAAzsUvYHCn18A-lriGZhMNtCVFg";
+const TURNSTILE_SECRET_KEY = "0x4AAAAAAAzsP9F6rERuhc7Y-mKEYJRsB3k";
 
 interface TurnstileVerifyResponse {
   success: boolean;
