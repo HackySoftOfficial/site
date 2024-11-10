@@ -4,14 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "pnpm run setup:wllama && next build",
     "start": "next start",
     "lint": "next lint",
     "pages:build": "pnpm build && pnpm dlx @cloudflare/next-on-pages",
     "deploy": "pnpm run pages:build && wrangler pages deploy .vercel/output/static",
     "pages:dev": "pnpm dlx wrangler pages dev .vercel/output/static --compatibility-date=2024-01-01",
     "monitor:payments": "tsx scripts/monitor-payments.ts",
-    "setup:wllama": "powershell -File setup-wllama.ps1"
+    "setup:wllama": "tsx scripts/setup-wllama.ts"
   },
   "dependencies": {
     "@azure-rest/ai-inference": "^1.0.0-beta.4",
@@ -73,7 +73,7 @@
     "litecoin-core": "^1.1.0",
     "lucide-react": "^0.446.0",
     "nanoid": "^5.0.8",
-    "next": "^14.0.0",
+    "next": "15.0.4-canary.4",
     "next-themes": "^0.3.0",
     "openai": "^4.71.1",
     "postcss": "8.4.30",
@@ -92,6 +92,7 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss": "3.3.3",
     "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.19.2",
     "typescript": "5.2.2",
     "vaul": "^0.9.9",
     "vc": "^0.1.4",

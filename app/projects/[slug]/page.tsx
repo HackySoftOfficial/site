@@ -3,6 +3,7 @@ export const runtime = 'edge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 // This would typically come from a database or API
 const REPOS = {
@@ -70,21 +71,13 @@ const REPOS = {
   }
 };
 
-export default function ProjectPage({ params }: { params: { slug: string } }) {
-  const project = REPOS[params.slug as keyof typeof REPOS];
+export default async function ProjectPage({ params }: { params: { slug: string } }) {
+  // Await the params to fix the error
+  const slug = await params.slug;
+  const project = REPOS[slug as keyof typeof REPOS];
 
   if (!project) {
-    return (
-      <main className="container mx-auto px-4 py-24">
-        <h1 className="text-4xl font-bold mb-4">Project Not Found</h1>
-        <Button asChild>
-          <Link href="/projects">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Projects
-          </Link>
-        </Button>
-      </main>
-    );
+    notFound();
   }
 
   return (
@@ -126,7 +119,7 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
         </div>
 
         <Button className="lg" asChild>
-          <Link href={`/services?product=${params.slug}`}>
+          <Link href={`/services?product=${slug}`}>
             Purchase (${project.price})
           </Link>
         </Button>

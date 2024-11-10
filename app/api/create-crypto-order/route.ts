@@ -9,10 +9,19 @@ interface CreateOrderRequest {
   amount: number;
   contactMethod: string;
   contactValue: string;
-  selectedItem: {
+}
+
+interface CoinbaseChargeResponse {
+  data: {
+    id: string;
+    hosted_url: string;
+    code: string;
     name: string;
     description: string;
-    price: number;
+    pricing: {
+      local: { amount: string; currency: string };
+    };
+    [key: string]: any;
   };
 }
 
@@ -22,17 +31,26 @@ export async function POST(req: Request) {
     const orderId = nanoid();
     const now = Date.now();
 
+    // Validate required fields
+    if (!data.productId || !data.amount || !data.contactMethod || !data.contactValue) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
     // Create a charge using Coinbase Commerce API
     const response = await fetch('https://api.commerce.coinbase.com/charges', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CC-Api-Key': process.env.COINBASE_COMMERCE_API_KEY!,
-        'X-CC-Version': '2018-03-22'
+        'X-CC-Version': '2018-03-22',
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
-        name: data.selectedItem.name,
-        description: data.selectedItem.description,
+        name: `Order ${orderId}`,
+        description: `Payment for ${data.productId}`,
         pricing_type: 'fixed_price',
         local_price: {
           amount: data.amount.toString(),
@@ -43,8 +61,8 @@ export async function POST(req: Request) {
           productId: data.productId,
           contactMethod: data.contactMethod,
           contactValue: data.contactValue,
-          itemName: data.selectedItem.name,
-          itemDescription: data.selectedItem.description
+          itemName: data.productId, // For Discord notification
+          itemDescription: `Payment for ${data.productId}` // For Discord notification
         },
         redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL}/order/success?orderId=${orderId}`,
         cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/order/cancel?orderId=${orderId}`
@@ -52,10 +70,12 @@ export async function POST(req: Request) {
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Coinbase API error:', errorText);
       throw new Error(`Coinbase API error: ${response.statusText}`);
     }
 
-    const chargeData = await response.json();
+    const chargeData = await response.json() as CoinbaseChargeResponse;
 
     // Store order details in database
     await db.orders.create({
@@ -73,11 +93,8 @@ export async function POST(req: Request) {
         email: data.contactValue
       },
       product: {
-        name: data.selectedItem.name,
+        name: data.productId,
         price: data.amount
-      },
-      metadata: {
-        itemDescription: data.selectedItem.description
       }
     });
 

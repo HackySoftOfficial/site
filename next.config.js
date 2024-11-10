@@ -10,6 +10,17 @@ const nextConfig = {
       fs: false,
       path: false,
     };
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+    };
+    
+    // Add WASM file loader
+    config.module.rules.push({
+      test: /\.wasm$/,
+      type: 'asset/resource',
+    });
+
     return config;
   },
   async headers() {
