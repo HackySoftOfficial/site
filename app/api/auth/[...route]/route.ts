@@ -1,26 +1,15 @@
 import { NextResponse } from 'next/server';
-import { createDb } from '@/lib/db';
-import { users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
 import { SignJWT, jwtVerify } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
-    const db = createDb(process.env.DB as unknown as D1Database);
+    const { email } = await request.json();
 
-    // In production, use Cloudflare Access or a proper auth service
-    const user = await db.query.users.findFirst({
-      where: eq(users.email, email),
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
-    }
-
-    const token = await new SignJWT({ userId: user.id, role: user.role })
+    // In production, authentication is handled by Cloudflare Access
+    // This endpoint is just for development/testing purposes
+    const token = await new SignJWT({ email })
       .setProtectedHeader({ alg: 'HS256' })
       .setExpirationTime('24h')
       .sign(JWT_SECRET);
