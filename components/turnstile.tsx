@@ -21,7 +21,7 @@ export function Turnstile({ onSuccess, onError }: TurnstileProps) {
 
       // @ts-ignore - Turnstile is loaded via script
       window.turnstile.render(containerRef.current, {
-        sitekey: "0x4AAAAAAAzsPzeKVZCumamS", // Replace with your actual site key
+        sitekey: "0x4AAAAAAAzsUquHurDSPtR_", // Replace with your actual site key
         theme: theme === "dark" ? "dark" : "light",
         callback: (token: string) => {
           onSuccess(token);

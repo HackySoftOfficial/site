@@ -173,8 +173,7 @@ export function ContactForm(): JSX.Element {
               <FormLabel>Turnstile Verification</FormLabel>
               <FormControl>
                 <Turnstile
-                  siteKey="0x4AAAAAAAzsUquHurDSPtR_"
-                  onVerify={(token) => field.onChange(token)}
+                  onSuccess={(token) => field.onChange(token)}
                 />
               </FormControl>
               <FormMessage />
