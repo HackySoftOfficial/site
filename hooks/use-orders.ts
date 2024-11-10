@@ -2,16 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/admin/auth-provider";
-
-interface Order {
-  id: string;
-  customerName: string;
-  customerEmail: string;
-  productName: string;
-  productPrice: number;
-  status: "pending" | "completed" | "failed";
-  createdAt: number;
-}
+import type { Order } from "@/lib/db";
 
 interface Filters {
   status: string;
@@ -41,10 +32,14 @@ export function useOrders(filters: Filters) {
         });
 
         if (!response.ok) throw new Error('Failed to fetch orders');
-
-        const data = await response.json();
-        const transformedOrders = data.orders.map((order: any) => ({
-          ...order,
+        const data: { orders: any[] } = await response.json();
+        const transformedOrders = data.orders.map((order: any): Order => ({
+          id: order.id,
+          productId: order.productId,
+          amount: order.amount,
+          status: order.status,
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt,
           customer: {
             name: order.customerName || order.contactValue || 'Unknown',
             email: order.customerEmail || order.contactValue || 'Unknown',
@@ -53,6 +48,11 @@ export function useOrders(filters: Filters) {
             name: order.productId,
             price: order.amount,
           },
+          coinbaseChargeId: order.coinbaseChargeId,
+          contactMethod: order.contactMethod,
+          contactValue: order.contactValue,
+          transactionHash: order.transactionHash,
+          metadata: order.metadata,
         }));
         setOrders(transformedOrders);
       } catch (error) {

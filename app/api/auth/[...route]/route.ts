@@ -5,7 +5,7 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
+    const { email } = await request.json() as { email: string };
 
     // In production, authentication is handled by Cloudflare Access
     // This endpoint is just for development/testing purposes
