@@ -39,37 +39,19 @@ export function ContactForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      // Send to Discord webhook
-      await fetch('https://discord.com/api/webhooks/1304843187772330056/DO2qCDK7R4JNZaDdQlcTo0cfn6bJBS8AuSoOozjvyqQYwpgMugMrefKhAmFg581W_JFq', {
+      const response = await fetch('/api/contact-us', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          embeds: [{
-            title: '📬 New Contact Form Submission',
-            color: 0x00ff00,
-            fields: [
-              {
-                name: 'Name',
-                value: values.name,
-                inline: true
-              },
-              {
-                name: 'Email',
-                value: values.email,
-                inline: true
-              },
-              {
-                name: 'Message',
-                value: values.message,
-                inline: false
-              }
-            ],
-            timestamp: new Date().toISOString()
-          }]
-        })
+        body: JSON.stringify(values),
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send message');
+      }
 
       toast({
         title: "Message sent!",
