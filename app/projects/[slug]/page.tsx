@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -248,7 +250,7 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
   return (
     <main className="container mx-auto px-4 py-24">
       <div className="max-w-4xl mx-auto">
-        <Button variant="ghost" asChild className="mb-8">
+        <Button asChild className="mb-8">
           <Link href="/projects">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Projects
@@ -283,7 +285,7 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
           </section>
         </div>
 
-        <Button size="lg" asChild>
+        <Button className="lg" asChild>
           <Link href={`/services?product=${params.slug}`}>
             Purchase (${project.price})
           </Link>
@@ -291,4 +293,4 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
       </div>
     </main>
   );
-} 
+}

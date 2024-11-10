@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { SignJWT, jwtVerify } from 'jose';
 
+export const runtime = 'edge';
+
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function POST(request: Request) {

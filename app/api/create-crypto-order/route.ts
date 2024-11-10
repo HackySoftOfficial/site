@@ -1,10 +1,7 @@
 import { db } from '@/lib/db';
 import { nanoid } from 'nanoid';
-import { Client, resources } from 'coinbase-commerce-node';
 
-const COINBASE_API_KEY = process.env.COINBASE_COMMERCE_API_KEY!;
-Client.init(COINBASE_API_KEY);
-const { Charge } = resources;
+export const runtime = 'edge';
 
 interface CreateOrderRequest {
   productId: string;
@@ -13,30 +10,52 @@ interface CreateOrderRequest {
   contactValue: string;
 }
 
+interface CoinbaseChargeResponse {
+  data: {
+    id: string;
+    hosted_url: string;
+    [key: string]: any;
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const data = await req.json() as CreateOrderRequest;
     const orderId = nanoid();
     const now = Date.now();
 
-    // Create a charge using the Coinbase Commerce SDK
-    const chargeData = await Charge.create({
-      name: `Order ${orderId}`,
-      description: `Payment for ${data.productId}`,
-      pricing_type: 'fixed_price',
-      local_price: {
-        amount: data.amount.toString(),
-        currency: 'USD'
+    // Create a charge using Coinbase Commerce API directly
+    const response = await fetch('https://api.commerce.coinbase.com/charges', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CC-Api-Key': process.env.COINBASE_COMMERCE_API_KEY!,
+        'X-CC-Version': '2018-03-22'
       },
-      metadata: {
-        orderId,
-        productId: data.productId,
-        contactMethod: data.contactMethod,
-        contactValue: data.contactValue
-      },
-      redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL}/order/success?orderId=${orderId}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/order/cancel?orderId=${orderId}`
+      body: JSON.stringify({
+        name: `Order ${orderId}`,
+        description: `Payment for ${data.productId}`,
+        pricing_type: 'fixed_price',
+        local_price: {
+          amount: data.amount.toString(),
+          currency: 'USD'
+        },
+        metadata: {
+          orderId,
+          productId: data.productId,
+          contactMethod: data.contactMethod,
+          contactValue: data.contactValue
+        },
+        redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL}/order/success?orderId=${orderId}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/order/cancel?orderId=${orderId}`
+      })
     });
+
+    if (!response.ok) {
+      throw new Error(`Coinbase API error: ${response.statusText}`);
+    }
+
+    const chargeData = await response.json() as CoinbaseChargeResponse;
 
     // Store order in KV
     await db.orders.create({
@@ -46,7 +65,7 @@ export async function POST(req: Request) {
       status: 'pending',
       createdAt: now,
       updatedAt: now,
-      coinbaseChargeId: chargeData.id,
+      coinbaseChargeId: chargeData.data.id,
       contactMethod: data.contactMethod,
       contactValue: data.contactValue,
       customer: {
@@ -61,7 +80,7 @@ export async function POST(req: Request) {
 
     return new Response(JSON.stringify({ 
       orderId,
-      checkoutUrl: chargeData.hosted_url
+      checkoutUrl: chargeData.data.hosted_url
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

@@ -1,17 +1,41 @@
 import { db } from '@/lib/db';
-import crypto from 'crypto';
+import { Fetcher } from '@cloudflare/workers-types';
+
+export const runtime = 'edge';
 
 const WEBHOOK_SECRET = process.env.COINBASE_COMMERCE_WEBHOOK_SECRET!;
+
+declare global {
+  const DISCORD_WEBHOOK: Fetcher;
+}
 
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
     const signature = req.headers.get('x-cc-webhook-signature');
 
-    // Verify webhook signature
-    const hmac = crypto.createHmac('sha256', WEBHOOK_SECRET);
-    hmac.update(rawBody);
-    const computedSignature = hmac.digest('hex');
+    if (!signature) {
+      return new Response('No signature', { status: 400 });
+    }
+
+    // Verify webhook signature using Web Crypto API
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(WEBHOOK_SECRET),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    const signatureBytes = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      new TextEncoder().encode(rawBody)
+    );
+
+    const computedSignature = Array.from(new Uint8Array(signatureBytes))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
 
     if (computedSignature !== signature) {
       return new Response('Invalid signature', { status: 400 });
@@ -23,15 +47,16 @@ export async function POST(req: Request) {
     if (event.event.type === 'charge:confirmed') {
       await db.orders.update(orderId, {
         status: 'completed',
-        transactionHash: event.event.data.payments[0].transaction_id
+        updatedAt: Date.now(),
       });
 
-      // Send notification to Discord webhook
-      await fetch('https://discord.com/api/webhooks/1304843187772330056/DO2qCDK7R4JNZaDdQlcTo0cfn6bJBS8AuSoOozjvyqQYwpgMugMrefKhAmFg581W_JFq', {
+      // Notify Discord
+      await DISCORD_WEBHOOK.fetch('', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content: `Payment Confirmed via Coinbase Commerce!\nOrder ID: ${orderId}`
+          content: `🎉 New order completed!\nOrder ID: ${orderId}\nAmount: $${event.event.data.pricing.local.amount} ${event.event.data.pricing.local.currency}`,
+          username: 'Order Bot',
+          avatar_url: 'https://your-domain.com/bot-avatar.png'
         })
       });
     }

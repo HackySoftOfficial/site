@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import type { R2Bucket } from '@cloudflare/workers-types';
 
 interface DownloadRequest {
   repoName: string;
   sessionId: string;
 }
+
+declare global {
+  const STORAGE: R2Bucket;
+}
+
+export const runtime = 'edge';
 
 export async function POST(req: Request) {
   try {
@@ -16,9 +23,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Payment required' }, { status: 402 });
     }
 
-    // Get file from R2
-    const storage = process.env.STORAGE as unknown as R2Bucket;
-    const file = await storage.get(`${repoName}.zip`);
+    // Get file from R2 using the bound bucket
+    const file = await STORAGE.get(`${repoName}.zip`);
 
     if (!file) {
       return NextResponse.json(
@@ -31,7 +37,9 @@ export async function POST(req: Request) {
     headers.set('Content-Type', 'application/zip');
     headers.set('Content-Disposition', `attachment; filename=${repoName}.zip`);
 
-    return new NextResponse(file.body, { headers });
+    // Convert the R2 object body to an array buffer and create a new Response
+    const arrayBuffer = await file.arrayBuffer();
+    return new Response(arrayBuffer, { headers });
   } catch (error) {
     console.error('Download error:', error);
     return NextResponse.json(
