@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -27,6 +27,7 @@ const formSchema = z.object({
 export function ContactForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,7 +38,25 @@ export function ContactForm() {
     },
   });
 
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => {
+        setCooldown(prev => Math.max(0, prev - 1));
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (cooldown > 0) {
+      toast({
+        title: "Please wait",
+        description: `You can submit again in ${cooldown} seconds`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await fetch('/api/contact', {
@@ -48,6 +67,12 @@ export function ContactForm() {
         body: JSON.stringify(values),
       });
 
+      if (response.status === 429) {
+        const data = await response.json();
+        setCooldown(data.remainingTime);
+        throw new Error(`Please wait ${data.remainingTime} seconds before trying again`);
+      }
+
       if (!response.ok) {
         throw new Error('Failed to send message');
       }
@@ -57,11 +82,12 @@ export function ContactForm() {
         description: "We'll get back to you as soon as possible.",
       });
       form.reset();
+      setCooldown(30); // Start cooldown after successful submission
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
         title: "Error",
-        description: "Failed to send message. Please try again.",
+        description: (error as Error).message || "Failed to send message. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -116,12 +142,18 @@ export function ContactForm() {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading || cooldown > 0}
+        >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Sending...
             </>
+          ) : cooldown > 0 ? (
+            `Wait ${cooldown}s`
           ) : (
             "Send Message"
           )}

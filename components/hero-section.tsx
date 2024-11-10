@@ -42,6 +42,7 @@ export function HeroSection() {
                   <Terminal className="mr-1 h-3 w-3" />
                   Professional Development Services
                 </span>
+<<<<<<< HEAD
               </motion.div>
               
               <motion.h1 
@@ -70,6 +71,19 @@ export function HeroSection() {
               transition={{ delay: 0.5 }}
             >
               <Button size="lg" className="bg-primary hover:bg-primary/90" asChild>
+=======
+              </div>
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
+                HackySoft
+              </h1>
+              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                Two Python developers crafting powerful Discord tools and automation solutions that just work.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-center gap-6"> {/* Center align items */}
+              <Button size="lg" asChild>
+>>>>>>> a844cea9ddcd343c4aee3cde65e8f66efee023e3
                 <Link href="/services">
                   Get Started <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

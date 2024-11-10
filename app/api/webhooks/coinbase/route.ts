@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 export const runtime = 'edge';
 
 const WEBHOOK_SECRET = process.env.COINBASE_COMMERCE_WEBHOOK_SECRET!;
-const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1304843187772330056/DO2qCDK7R4JNZaDdQlcTo0cfn6bJBS8AuSoOozjvyqQYwpgMugMrefKhAmFg581W_JFq';
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
 export async function POST(req: Request) {
   try {
