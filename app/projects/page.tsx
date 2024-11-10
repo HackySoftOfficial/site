@@ -2,6 +2,7 @@ import { Card } from '@/components/ui/card';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
+import Image from 'next/image';
 
 // Update the REPOS object to include all projects with their full data
 const REPOS = {
@@ -215,10 +216,11 @@ export default function ProjectsPage() {
         {Object.entries(REPOS).map(([slug, project]) => (
           <Card key={slug} className="overflow-hidden group">
             <div className="aspect-video relative overflow-hidden">
-              <img 
+              <Image 
                 src={project.image || 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&q=80'} 
                 alt={project.name}
-                className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-200"
+                fill
+                className="object-cover transform group-hover:scale-105 transition-transform duration-200"
               />
             </div>
             <div className="p-6">
