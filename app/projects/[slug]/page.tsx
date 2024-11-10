@@ -71,9 +71,13 @@ const REPOS = {
   }
 };
 
-export default async function ProjectPage({ params }: { params: { slug: string } }) {
-  // Await the params to fix the error
-  const slug = await params.slug;
+export default async function ProjectPage({ 
+  params 
+}: { 
+  params: Promise<{ slug: string }> 
+}) {
+  // Await the params to get the slug
+  const { slug } = await params;
   const project = REPOS[slug as keyof typeof REPOS];
 
   if (!project) {

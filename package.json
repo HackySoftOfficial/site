@@ -4,14 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "pnpm run setup:wllama && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "pages:build": "pnpm build && pnpm dlx @cloudflare/next-on-pages",
     "deploy": "pnpm run pages:build && wrangler pages deploy .vercel/output/static",
     "pages:dev": "pnpm dlx wrangler pages dev .vercel/output/static --compatibility-date=2024-01-01",
-    "monitor:payments": "tsx scripts/monitor-payments.ts",
-    "setup:wllama": "tsx scripts/setup-wllama.ts"
+    "monitor:payments": "tsx scripts/monitor-payments.ts"
   },
   "dependencies": {
     "@azure-rest/ai-inference": "^1.0.0-beta.4",
@@ -53,7 +52,6 @@
     "@types/node": "20.6.2",
     "@types/react": "18.2.22",
     "@types/react-dom": "18.2.7",
-    "@wllama/wllama": "^1.17.0",
     "ai": "^3.4.33",
     "autoprefixer": "10.4.15",
     "axios": "^1.7.7",
