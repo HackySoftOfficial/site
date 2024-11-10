@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
+import { verifyTurnstileToken } from '@/lib/turnstile';
 
 export const runtime = 'edge';
+
+interface RequestBody {
+  messages: Array<{ role: string; content: string }>;
+  turnstileToken: string;
+}
 
 interface CloudflareAIResponse {
   result: {
@@ -12,7 +18,18 @@ interface CloudflareAIResponse {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await req.json() as RequestBody;
+    
+    // Verify Turnstile token on every request
+    const isValid = await verifyTurnstileToken(body.turnstileToken);
+    if (!isValid) {
+      return NextResponse.json({
+        result: { response: '' },
+        success: false,
+        errors: ['Verification expired. Please verify again.'],
+        messages: []
+      }, { status: 401 });
+    }
     
     const response = await fetch(
       'https://api.cloudflare.com/client/v4/accounts/acb7d77b6f9433aa6109e40b25170148/ai/run/@cf/meta/llama-3.1-70b-instruct',
@@ -22,7 +39,7 @@ export async function POST(req: Request) {
           'Content-Type': 'application/json',
         },
         method: 'POST',
-        body: JSON.stringify(body),
+        body: JSON.stringify({ messages: body.messages }),
       }
     );
 
