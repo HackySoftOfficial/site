@@ -1,65 +1,43 @@
 import { NextResponse } from 'next/server';
+
 export const runtime = 'edge';
 
 interface ContactFormData {
   name: string;
   email: string;
   message: string;
-  turnstileToken: string;
+  hcaptchaToken: string;
 }
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
-const TURNSTILE_SECRET_KEY = "0x4AAAAAAAzsUvYHCn18A-lriGZhMNtCVFg";
-
-interface TurnstileVerifyResponse {
-  success: boolean;
-  challenge_ts: string;
-  hostname: string;
-  'error-codes': string[];
-  action?: string;
-  cdata?: string;
-}
-
-async function verifyTurnstile(token: string): Promise<boolean> {
-  try {
-    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        secret: TURNSTILE_SECRET_KEY,
-        response: token,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Turnstile verification failed: ${response.statusText}`);
-    }
-
-    const data = await response.json() as TurnstileVerifyResponse;
-    return data.success;
-  } catch (error) {
-    console.error('Turnstile verification error:', error);
-    return false;
-  }
-}
+const HCAPTCHA_SECRET_KEY = 'ES_98291cd9d012455f8f8137f067285a7e';
 
 export async function POST(req: Request) {
   try {
     const data = await req.json() as ContactFormData;
 
     // Validate required fields
-    if (!data.name || !data.email || !data.message || !data.turnstileToken) {
+    if (!data.name || !data.email || !data.message || !data.hcaptchaToken) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
       );
     }
 
-    // Verify Turnstile token
-    const isVerified = await verifyTurnstile(data.turnstileToken);
-    if (!isVerified) {
+    // Verify hCaptcha token
+    const hcaptchaResponse = await fetch('https://hcaptcha.com/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        secret: HCAPTCHA_SECRET_KEY,
+        response: data.hcaptchaToken,
+      }),
+    });
+
+    const hcaptchaData: { success: boolean } = await hcaptchaResponse.json();
+    if (!hcaptchaData.success) {
       return NextResponse.json(
         { error: 'Security verification failed. Please try again.' },
         { status: 403 }

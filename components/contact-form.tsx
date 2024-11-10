@@ -17,14 +17,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Turnstile } from "@/components/turnstile";
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 
 // Define the form schema type
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   message: z.string().min(10, "Message must be at least 10 characters"),
-  turnstileToken: z.string().min(1, "Please complete the Turnstile verification")
+  hcaptchaToken: z.string().min(1, "Please complete the hCaptcha verification")
 });
 
 // Create a type from the schema
@@ -89,9 +89,6 @@ export function ContactForm(): JSX.Element {
 
       if (!response.ok) {
         if (response.status === 403) {
-          // Reset Turnstile on verification failure
-          // @ts-ignore - Turnstile is loaded via script
-          window.turnstile?.reset();
           throw new Error('Security verification failed. Please try again.');
         }
         throw new Error('error' in data ? data.error : 'Failed to send message');
@@ -102,9 +99,6 @@ export function ContactForm(): JSX.Element {
         description: "We'll get back to you as soon as possible.",
       });
       form.reset();
-      // Reset Turnstile after successful submission
-      // @ts-ignore - Turnstile is loaded via script
-      window.turnstile?.reset();
       setCooldown(30);
     } catch (error) {
       console.error('Error sending message:', error);
@@ -167,13 +161,14 @@ export function ContactForm(): JSX.Element {
 
         <FormField
           control={form.control}
-          name="turnstileToken"
+          name="hcaptchaToken"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Turnstile Verification</FormLabel>
+              <FormLabel>Verification</FormLabel>
               <FormControl>
-                <Turnstile
-                  onSuccess={(token) => field.onChange(token)}
+                <HCaptcha
+                  sitekey="your-hcaptcha-site-key"
+                  onVerify={(token) => field.onChange(token)}
                 />
               </FormControl>
               <FormMessage />

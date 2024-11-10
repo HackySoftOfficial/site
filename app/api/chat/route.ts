@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { verifyTurnstileToken } from '@/lib/turnstile';
 
 export const runtime = 'edge';
 
 interface RequestBody {
   messages: Array<{ role: string; content: string }>;
-  turnstileToken: string;
+  token: string;
 }
 
 interface CloudflareAIResponse {
@@ -16,13 +15,27 @@ interface CloudflareAIResponse {
   errors: string[];
 }
 
+const HCAPTCHA_SECRET_KEY = 'ES_98291cd9d012455f8f8137f067285a7e';
+
 export async function POST(req: Request) {
   try {
     const body = await req.json() as RequestBody;
     
-    // Verify Turnstile token on every request
-    const isValid = await verifyTurnstileToken(body.turnstileToken);
-    if (!isValid) {
+    // Verify hCaptcha token on every request
+    const verifyResponse = await fetch('https://hcaptcha.com/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        secret: HCAPTCHA_SECRET_KEY,
+        response: body.token,
+      }),
+    });
+
+    const verifyData = await verifyResponse.json();
+    
+    if (!verifyData.success) {
       return NextResponse.json({
         result: { response: '' },
         success: false,

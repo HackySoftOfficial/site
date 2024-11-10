@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 
-interface VerifyHcaptchaRequest {
+interface VerifyRequest {
   token: string;
 }
 
@@ -11,7 +11,7 @@ const HCAPTCHA_SECRET_KEY = 'ES_98291cd9d012455f8f8137f067285a7e';
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json() as Partial<VerifyHcaptchaRequest>;
+    const body = await req.json() as Partial<VerifyRequest>;
     
     if (!body.token) {
       return NextResponse.json(
@@ -39,7 +39,6 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('hCaptcha verification error:', error);

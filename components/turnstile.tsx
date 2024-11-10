@@ -32,6 +32,9 @@ export function Turnstile({ onSuccess, onError }: TurnstileProps) {
       });
     };
 
+    // Store the current ref value
+    const currentContainer = containerRef.current;
+
     // Load Turnstile if not already loaded
     if (!window.turnstile) {
       const script = document.createElement("script");
@@ -45,9 +48,9 @@ export function Turnstile({ onSuccess, onError }: TurnstileProps) {
     }
 
     return () => {
-      // Cleanup on unmount
-      if (containerRef.current) {
-        containerRef.current.innerHTML = "";
+      // Use the stored ref value in cleanup
+      if (currentContainer) {
+        currentContainer.innerHTML = "";
       }
     };
   }, [onSuccess, onError, theme]);
