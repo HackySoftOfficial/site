@@ -7,6 +7,13 @@ interface RequestBody {
   token: string;
 }
 
+interface HCaptchaResponse {
+  success: boolean;
+  challenge_ts: string;
+  hostname: string;
+  'error-codes'?: string[];
+}
+
 interface CloudflareAIResponse {
   result: {
     response: string;
@@ -33,7 +40,7 @@ export async function POST(req: Request) {
       }),
     });
 
-    const verifyData = await verifyResponse.json();
+    const verifyData = await verifyResponse.json() as HCaptchaResponse;
     
     if (!verifyData.success) {
       return NextResponse.json({
