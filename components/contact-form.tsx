@@ -30,10 +30,17 @@ const formSchema = z.object({
 // Create a type from the schema
 type ContactFormValues = z.infer<typeof formSchema>;
 
-// Define the API response type for error cases
-interface ErrorResponse {
-  remainingTime: number;
+// Define the API response types
+interface SuccessResponse {
+  success: boolean;
 }
+
+interface ErrorResponse {
+  error: string;
+  remainingTime?: number;
+}
+
+type ApiResponse = SuccessResponse | ErrorResponse;
 
 export function ContactForm(): JSX.Element {
   const { toast } = useToast();
@@ -78,14 +85,16 @@ export function ContactForm(): JSX.Element {
         body: JSON.stringify(values),
       });
 
-      if (response.status === 429) {
-        const data: ErrorResponse = await response.json();
-        setCooldown(data.remainingTime);
-        throw new Error(`Please wait ${data.remainingTime} seconds before trying again`);
-      }
+      const data = await response.json() as ApiResponse;
 
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        if (response.status === 403) {
+          // Reset Turnstile on verification failure
+          // @ts-ignore - Turnstile is loaded via script
+          window.turnstile?.reset();
+          throw new Error('Security verification failed. Please try again.');
+        }
+        throw new Error('error' in data ? data.error : 'Failed to send message');
       }
 
       toast({
@@ -93,7 +102,10 @@ export function ContactForm(): JSX.Element {
         description: "We'll get back to you as soon as possible.",
       });
       form.reset();
-      setCooldown(30); // Start cooldown after successful submission
+      // Reset Turnstile after successful submission
+      // @ts-ignore - Turnstile is loaded via script
+      window.turnstile?.reset();
+      setCooldown(30);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
