@@ -9,6 +9,36 @@ interface ContactFormData {
   turnstileToken: string; // Added turnstile token to the data interface
 }
 
+const TURNSTILE_SECRET_KEY = "0x4AAAAAAAzsP9F6rERuhc7Y-mKEYJRsB3k";
+
+interface TurnstileVerifyResponse {
+  success: boolean;
+  challenge_ts: string;
+  hostname: string;
+  'error-codes': string[];
+  action?: string;
+  cdata?: string;
+}
+
+async function verifyTurnstileToken(token: string): Promise<boolean> {
+  const response = await fetch(
+    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        secret: TURNSTILE_SECRET_KEY,
+        response: token,
+      }),
+    }
+  );
+
+  const data = await response.json() as TurnstileVerifyResponse;
+  return data.success;
+}
+
 const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1305247175684522015/-8-zySdCt2olpy2Ca4CKKc28_AjOFCYUK0yblX1CZZhDIVypnI-eymmaf3PRlKqXaNrY';
 const TURNSTILE_SECRET_KEY = '0x4AAAAAAAzsUvYHCn18A-lriGZhMNtCVFg';
 
