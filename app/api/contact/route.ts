@@ -6,6 +6,28 @@ interface ContactFormData {
   name: string;
   email: string;
   message: string;
+  turnstileToken: string;
+}
+
+const TURNSTILE_SECRET_KEY = "0x4AAAAAAAzsP9F6rERuhc7Y-mKEYJRsB3k";
+
+async function verifyTurnstileToken(token: string): Promise<boolean> {
+  const response = await fetch(
+    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        secret: TURNSTILE_SECRET_KEY,
+        response: token,
+      }),
+    }
+  );
+
+  const data = await response.json();
+  return data.success;
 }
 
 const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1305247175684522015/-8-zySdCt2olpy2Ca4CKKc28_AjOFCYUK0yblX1CZZhDIVypnI-eymmaf3PRlKqXaNrY';
@@ -34,6 +56,15 @@ export async function POST(req: Request) {
     }
 
     const data = await req.json() as ContactFormData;
+
+    // Verify Turnstile token
+    const isValid = await verifyTurnstileToken(data.turnstileToken);
+    if (!isValid) {
+      return NextResponse.json(
+        { error: 'Invalid Turnstile token' },
+        { status: 400 }
+      );
+    }
 
     // Send to Discord webhook
     const response = await fetch(DISCORD_WEBHOOK_URL, {

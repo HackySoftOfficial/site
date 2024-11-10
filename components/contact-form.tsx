@@ -17,12 +17,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Turnstile } from "@/components/turnstile";
 
 // Define the form schema type
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   message: z.string().min(10, "Message must be at least 10 characters"),
+  turnstileToken: z.string().min(1, "Please complete the Turnstile verification")
 });
 
 // Create a type from the schema
@@ -144,6 +146,28 @@ export function ContactForm(): JSX.Element {
                   placeholder="Tell us about your project..."
                   className="min-h-[120px]"
                   {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="turnstileToken"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Turnstile
+                  onSuccess={(token) => field.onChange(token)}
+                  onError={() => {
+                    toast({
+                      title: "Error",
+                      description: "Failed to verify. Please try again.",
+                      variant: "destructive",
+                    });
+                  }}
                 />
               </FormControl>
               <FormMessage />
