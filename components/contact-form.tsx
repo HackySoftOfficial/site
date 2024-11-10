@@ -18,18 +18,27 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
+// Define the form schema type
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   message: z.string().min(10, "Message must be at least 10 characters"),
 });
 
-export function ContactForm() {
+// Create a type from the schema
+type ContactFormValues = z.infer<typeof formSchema>;
+
+// Define the API response type for error cases
+interface ErrorResponse {
+  remainingTime: number;
+}
+
+export function ContactForm(): JSX.Element {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [cooldown, setCooldown] = useState(0);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [cooldown, setCooldown] = useState<number>(0);
   
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<ContactFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -47,7 +56,7 @@ export function ContactForm() {
     }
   }, [cooldown]);
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const onSubmit = async (values: ContactFormValues): Promise<void> => {
     if (cooldown > 0) {
       toast({
         title: "Please wait",
@@ -68,7 +77,7 @@ export function ContactForm() {
       });
 
       if (response.status === 429) {
-        const data = await response.json();
+        const data: ErrorResponse = await response.json();
         setCooldown(data.remainingTime);
         throw new Error(`Please wait ${data.remainingTime} seconds before trying again`);
       }
@@ -87,13 +96,13 @@ export function ContactForm() {
       console.error('Error sending message:', error);
       toast({
         title: "Error",
-        description: (error as Error).message || "Failed to send message. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to send message. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Form {...form}>
