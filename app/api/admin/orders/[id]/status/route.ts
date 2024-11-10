@@ -22,7 +22,6 @@ export async function PATCH(
     const updatedOrder = await db.orders.update(params.id, {
       status,
       updatedAt: Date.now(),
-      updatedBy: "admin", // In production, get this from the authenticated user
     });
 
     return NextResponse.json({ success: true, order: updatedOrder });
