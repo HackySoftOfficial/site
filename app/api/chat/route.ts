@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     
     const response = await fetch(
-      'https://api.cloudflare.com/client/v4/accounts/acb7d77b6f9433aa6109e40b25170148/ai/run/@cf/meta/llama-3-8b-instruct',
+      'https://api.cloudflare.com/client/v4/accounts/acb7d77b6f9433aa6109e40b25170148/ai/run/@cf/meta/llama-3.1-70b-instruct',
       {
         headers: {
           'Authorization': `Bearer Tq6RZpw1Wy0aGEojY88uQlopo3jJirDJomKob4vC`,
