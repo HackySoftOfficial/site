@@ -1,16 +1,19 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
+const messageSchema = z.object({
+  name: z.string().min(2, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  message: z.string().min(10, "Message must be at least 10 characters"),
+});
+
 export async function POST(request: Request) {
   try {
-    // Parse the incoming request body
-    const { name, email, message } = await request.json();
-
-    // Check if required fields are present
-    if (!name || !email || !message) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
+    // Parse and validate the incoming request body
+    const body = await request.json();
+    const { name, email, message } = messageSchema.parse(body);
 
     // Prepare the payload for the Discord webhook
     const payload = {
