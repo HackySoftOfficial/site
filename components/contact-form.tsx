@@ -170,16 +170,11 @@ export function ContactForm(): JSX.Element {
           name="turnstileToken"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Turnstile Verification</FormLabel>
               <FormControl>
                 <Turnstile
-                  onSuccess={(token) => field.onChange(token)}
-                  onError={() => {
-                    toast({
-                      title: "Error",
-                      description: "Failed to verify. Please try again.",
-                      variant: "destructive",
-                    });
-                  }}
+                  siteKey="0x4AAAAAAAzsUquHurDSPtR_"
+                  onVerify={(token) => field.onChange(token)}
                 />
               </FormControl>
               <FormMessage />
