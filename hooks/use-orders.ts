@@ -43,7 +43,18 @@ export function useOrders(filters: Filters) {
         if (!response.ok) throw new Error('Failed to fetch orders');
 
         const data = await response.json();
-        setOrders(data.orders);
+        const transformedOrders = data.orders.map((order: any) => ({
+          ...order,
+          customer: {
+            name: order.customerName || order.contactValue || 'Unknown',
+            email: order.customerEmail || order.contactValue || 'Unknown',
+          },
+          product: {
+            name: order.productId,
+            price: order.amount,
+          },
+        }));
+        setOrders(transformedOrders);
       } catch (error) {
         console.error("Error fetching orders:", error);
       } finally {

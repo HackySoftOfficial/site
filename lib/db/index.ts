@@ -9,11 +9,17 @@ export interface Order {
   id: string;
   productId: string;
   amount: number;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'completed' | 'failed';
   createdAt: number;
   updatedAt: number;
-  customerEmail?: string;
-  customerName?: string;
+  customer: {
+    name: string;
+    email: string;
+  };
+  product: {
+    name: string;
+    price: number;
+  };
   coinbaseChargeId?: string;
   contactMethod?: string;
   contactValue?: string;
