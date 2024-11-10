@@ -11,6 +11,15 @@ interface ContactFormData {
 
 const TURNSTILE_SECRET_KEY = "0x4AAAAAAAzsP9F6rERuhc7Y-mKEYJRsB3k";
 
+interface TurnstileVerifyResponse {
+  success: boolean;
+  challenge_ts: string;
+  hostname: string;
+  'error-codes': string[];
+  action?: string;
+  cdata?: string;
+}
+
 async function verifyTurnstileToken(token: string): Promise<boolean> {
   const response = await fetch(
     'https://challenges.cloudflare.com/turnstile/v0/siteverify',
@@ -26,7 +35,7 @@ async function verifyTurnstileToken(token: string): Promise<boolean> {
     }
   );
 
-  const data = await response.json();
+  const data = await response.json() as TurnstileVerifyResponse;
   return data.success;
 }
 
