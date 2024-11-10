@@ -23,6 +23,25 @@ environment = "production"
 
 [vars]
 NEXT_PUBLIC_BASE_URL = "https://hackysoft.xyz"
+NEXT_PUBLIC_PRODUCTS = '''
+{
+  "account_backup": {
+    "name": "Account Backup",
+    "description": "Get all info from your discord account in a nice txt file",
+    "price": 7.99
+  },
+  "linux_rooter": {
+    "name": "Linux Rooter",
+    "description": "Control all your discord hosting at once",
+    "price": 37.99
+  },
+  "gen_token": {
+    "name": "Gen Token",
+    "description": "Mass token discord token",
+    "price": 14.99
+  }
+}
+'''
 
 [triggers]
 crons = []

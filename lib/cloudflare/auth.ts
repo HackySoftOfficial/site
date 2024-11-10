@@ -12,7 +12,8 @@ interface AccessJWT {
 
 export async function verifyAccessJWT(token: string): Promise<AccessJWT> {
   try {
-    const response = await fetch('https://YOUR_TEAM_NAME.cloudflareaccess.com/cdn-cgi/access/certs');
+    const teamName = process.env.NEXT_PUBLIC_CLOUDFLARE_TEAM_NAME;
+    const response = await fetch(`https://${teamName}.cloudflareaccess.com/cdn-cgi/access/certs`);
     const jwks = await response.json();
 
     // The JWT verification is handled by Cloudflare automatically
