@@ -6,7 +6,6 @@ interface VerifyRequest {
   token: string;
 }
 
-// Using a constant since this is a public site key
 const HCAPTCHA_SECRET_KEY = 'ES_98291cd9d012455f8f8137f067285a7e';
 
 export async function POST(req: Request) {

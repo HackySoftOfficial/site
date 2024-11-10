@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 
 // Define the form schema type
@@ -46,6 +46,7 @@ export function ContactForm(): JSX.Element {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [cooldown, setCooldown] = useState<number>(0);
+  const captchaRef = useRef<HCaptcha>(null);
   
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(formSchema),
@@ -53,6 +54,7 @@ export function ContactForm(): JSX.Element {
       name: "",
       email: "",
       message: "",
+      hcaptchaToken: "",
     },
   });
 
@@ -100,6 +102,8 @@ export function ContactForm(): JSX.Element {
       });
       form.reset();
       setCooldown(30);
+      captchaRef.current?.resetCaptcha();
+      form.setValue('hcaptchaToken', '');
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -114,7 +118,7 @@ export function ContactForm(): JSX.Element {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="name"
@@ -162,13 +166,14 @@ export function ContactForm(): JSX.Element {
         <FormField
           control={form.control}
           name="hcaptchaToken"
-          render={({ field }) => (
+          render={() => (
             <FormItem>
-              <FormLabel>Verification</FormLabel>
               <FormControl>
                 <HCaptcha
-                  sitekey="your-hcaptcha-site-key"
-                  onVerify={(token) => field.onChange(token)}
+                  ref={captchaRef}
+                  sitekey="2d4a6528-6638-4142-811c-f4ceff6af7e0"
+                  onVerify={(token) => form.setValue('hcaptchaToken', token)}
+                  theme="light"
                 />
               </FormControl>
               <FormMessage />

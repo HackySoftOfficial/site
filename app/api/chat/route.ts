@@ -28,29 +28,8 @@ export async function POST(req: Request) {
   try {
     const body = await req.json() as RequestBody;
     
-    // Verify hCaptcha token on every request
-    const verifyResponse = await fetch('https://hcaptcha.com/siteverify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        secret: HCAPTCHA_SECRET_KEY,
-        response: body.token,
-      }),
-    });
+    console.log('Request Body:', body);
 
-    const verifyData = await verifyResponse.json() as HCaptchaResponse;
-    
-    if (!verifyData.success) {
-      return NextResponse.json({
-        result: { response: '' },
-        success: false,
-        errors: ['Verification expired. Please verify again.'],
-        messages: []
-      }, { status: 401 });
-    }
-    
     const response = await fetch(
       'https://api.cloudflare.com/client/v4/accounts/acb7d77b6f9433aa6109e40b25170148/ai/run/@cf/meta/llama-3.1-70b-instruct',
       {
@@ -64,6 +43,8 @@ export async function POST(req: Request) {
     );
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Failed to get AI response: ${errorText}`);
       throw new Error(`Failed to get AI response: ${response.statusText}`);
     }
 
