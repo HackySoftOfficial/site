@@ -12,18 +12,28 @@ export function Navbar() {
             <NavigationMenuItem>
               <Link href="/" legacyBehavior passHref>
                 <NavigationMenuLink className="font-bold">
-                  HackySoftX
+                  HackySoft
                 </NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
-            <NavigationMenuItem>
+            <NavigationMenuItem className="ml-6">
               <Link href="/services" legacyBehavior passHref>
                 <NavigationMenuLink>Services</NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
+              <Link href="/projects" legacyBehavior passHref>
+                <NavigationMenuLink>Projects</NavigationMenuLink>
+              </Link>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
               <Link href="/about" legacyBehavior passHref>
                 <NavigationMenuLink>About</NavigationMenuLink>
+              </Link>
+            </NavigationMenuItem>
+            <NavigationMenuItem className="ml-6">
+              <Link href="/menu" legacyBehavior passHref>
+                <NavigationMenuLink>Menu</NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
           </NavigationMenuList>
@@ -32,10 +42,9 @@ export function Navbar() {
           <Button variant="ghost" asChild>
             <Link href="/contact">Contact</Link>
           </Button>
-          <Button variant="default" asChild>
-            <Link href="/services">Get Started</Link>
-          </Button>
-          <ModeToggle />
+          <div className="border-l pl-4 ml-4">
+            <ModeToggle />
+          </div>
         </div>
       </div>
     </header>

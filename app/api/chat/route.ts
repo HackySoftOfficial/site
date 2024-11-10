@@ -1,158 +1,118 @@
-export const runtime = 'edge';
+const Groq = require('groq-sdk');
 
-import OpenAI from 'openai';
-
-// Initialize GLHF client
-const glhfClient = new OpenAI({
-  apiKey: process.env.GLHF_API_KEY || 'glhf_02dbcee04bd1e813861b466fee17f590',
-  baseURL: 'https://glhf.chat/api/openai/v1',
-});
-
-// Initialize GitHub client
-const githubClient = new OpenAI({
-  apiKey: process.env.GITHUB_TOKEN || '',
-  baseURL: 'https://models.inference.ai.azure.com'
-});
-
-// Helper function to create a streaming response for GLHF
-function createGLHFStreamResponse(response: AsyncIterable<any>) {
-  const stream = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const chunk of response) {
-          const content = chunk.choices[0]?.delta?.content;
-          if (content) {
-            controller.enqueue(new TextEncoder().encode(content));
-          }
-        }
-      } catch (error) {
-        console.error('Stream error:', error);
-        controller.enqueue(new TextEncoder().encode('\n\nError: Failed to process response stream.'));
-      } finally {
-        controller.close();
-      }
-    }
-  });
-
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-    }
-  });
-}
-
-// Helper function to create a streaming response for GitHub
-function createGitHubStreamResponse(response: AsyncIterable<any>) {
-  const stream = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const chunk of response) {
-          // Handle raw text response
-          if (typeof chunk === 'string') {
-            controller.enqueue(new TextEncoder().encode(chunk));
-          }
-          // Handle JSON response if any
-          else if (chunk.choices?.[0]?.text) {
-            controller.enqueue(new TextEncoder().encode(chunk.choices[0].text));
-          }
-          else if (chunk.choices?.[0]?.delta?.content) {
-            controller.enqueue(new TextEncoder().encode(chunk.choices[0].delta.content));
-          }
-        }
-      } catch (error) {
-        console.error('Stream error:', error);
-        controller.enqueue(new TextEncoder().encode('\n\nError: Failed to process response stream.'));
-      } finally {
-        controller.close();
-      }
-    }
-  });
-
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-    }
-  });
-}
-
-// Validate model availability
-async function validateModel(client: OpenAI, model: string): Promise<boolean> {
-  try {
-    const models = await client.models.list();
-    return models.data.some(m => m.id === model);
-  } catch (error) {
-    console.error('Model validation error:', error);
-    return false;
-  }
-}
-
-// Default models as fallbacks
-const DEFAULT_GITHUB_MODEL = 'gpt-4o-mini';
-const DEFAULT_GLHF_MODEL = 'hf:mistralai/Mixtral-8x7B-Instruct-v0.1';
+const groq = new Groq({ apiKey: "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" });
 
 export async function POST(req: Request) {
   try {
-    const { messages, model, provider } = await req.json() as { messages: any, model: string, provider: string };
+    const { messages } = await req.json();
 
-    if (provider === 'github') {
-      // Validate GitHub model
-      const isValidModel = await validateModel(githubClient, model);
-      const selectedModel = isValidModel ? model : DEFAULT_GITHUB_MODEL;
-
-      if (!isValidModel) {
-        console.warn(`Invalid GitHub model: ${model}, falling back to ${DEFAULT_GITHUB_MODEL}`);
-      }
-
-      const response = await githubClient.chat.completions.create({
-        model: selectedModel,
-        messages,
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 1000,
-        top_p: 1.0
-      });
-
-      return createGitHubStreamResponse(response);
-
-    } else {
-      // Validate GLHF model
-      const isValidModel = await validateModel(glhfClient, model);
-      const selectedModel = isValidModel ? model : DEFAULT_GLHF_MODEL;
-
-      if (!isValidModel) {
-        console.warn(`Invalid GLHF model: ${model}, falling back to ${DEFAULT_GLHF_MODEL}`);
-      }
-
-      const response = await glhfClient.chat.completions.create({
-        model: selectedModel,
-        messages,
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 1000,
-      });
-
-      return createGLHFStreamResponse(response);
+    if (!messages || !Array.isArray(messages)) {
+      throw new Error('Invalid messages format');
     }
-    
+
+    // Create a streaming response
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          const chatCompletion = await groq.chat.completions.create({
+            messages: [
+              { 
+                role: "user", 
+                content: "You are a helpful assistant. Keep responses professional and family-friendly." 
+              },
+              ...messages.filter(msg => msg.role !== 'system')
+            ],
+            model: "mixtral-8x7b-32768",
+            temperature: 1,
+            max_tokens: 1024,
+            top_p: 1,
+            stream: true,
+            stop: null
+          });
+
+          for await (const chunk of chatCompletion) {
+            const content = chunk.choices[0]?.delta?.content || '';
+            if (content) {
+              const data = {
+                id: Date.now().toString(),
+                role: 'assistant',
+                content: content
+              };
+              controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`));
+            }
+          }
+
+          controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
+          controller.close();
+        } catch (error: any) {
+          console.error("Streaming error:", error);
+          
+          // Check if it's a content filtering error
+          if (error.message?.includes('content policy') || 
+              error.message?.includes('safety')) {
+            const filterMessage = {
+              id: Date.now().toString(),
+              role: 'assistant',
+              content: "I apologize, but I cannot provide a response to that query. Please try rephrasing your question."
+            };
+            controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(filterMessage)}\n\n`));
+          } else {
+            const errorMessage = {
+              id: Date.now().toString(),
+              role: 'assistant',
+              content: "I apologize, but there was an error processing your request. Please try again."
+            };
+            controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errorMessage)}\n\n`));
+          }
+          
+          controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
+          controller.close();
+        }
+      }
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
+    });
+
   } catch (error: any) {
-    console.error('Chat API error:', error);
+    console.error("Chat API error:", error);
     
-    // Return a more detailed error response
-    const errorMessage = error.error?.message || error.message || 'Unknown error occurred';
-    const errorCode = error.error?.code || error.code || 'unknown_error';
+    let errorMessage = error.message || 'Unknown error occurred';
+    let userMessage = 'Failed to generate response';
+    
+    // Handle Groq-specific errors
+    if (error.message?.includes('content policy') || 
+        error.message?.includes('safety')) {
+      userMessage = 'This content cannot be processed. Please rephrase your message.';
+      
+      return new Response(
+        JSON.stringify({ 
+          error: userMessage,
+          details: errorMessage,
+          type: 'content_filtered'
+        }), 
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
     
     return new Response(
       JSON.stringify({ 
-        error: 'Failed to generate response', 
+        error: userMessage,
         details: errorMessage,
-        code: errorCode
+        type: 'general_error'
       }), 
-      { 
-        status: error.status || 500,
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
       }
     );
   }
-} 
+}

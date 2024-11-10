@@ -1,25 +1,24 @@
 'use client';
 
-import { useAuth } from './auth-provider';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      // Redirect to Cloudflare Access login
-      window.location.href = `https://${process.env.NEXT_PUBLIC_CLOUDFLARE_TEAM_NAME}.cloudflareaccess.com/cdn-cgi/access/login/${process.env.NEXT_PUBLIC_CLOUDFLARE_AUD_TAG}?redirect=${window.location.href}`;
+    if (status === "unauthenticated") {
+      router.push("/login");
     }
-  }, [isAuthenticated, isLoading]);
+  }, [status, router]);
 
-  if (isLoading) {
+  if (status === "loading") {
     return <div>Loading...</div>;
   }
 
-  if (!isAuthenticated) {
+  if (!session) {
     return null;
   }
 

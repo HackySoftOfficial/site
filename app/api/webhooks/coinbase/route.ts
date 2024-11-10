@@ -1,13 +1,10 @@
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { Fetcher } from '@cloudflare/workers-types';
 
 export const runtime = 'edge';
 
 const WEBHOOK_SECRET = process.env.COINBASE_COMMERCE_WEBHOOK_SECRET!;
-
-declare global {
-  const DISCORD_WEBHOOK: Fetcher;
-}
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1304843187772330056/DO2qCDK7R4JNZaDdQlcTo0cfn6bJBS8AuSoOozjvyqQYwpgMugMrefKhAmFg581W_JFq';
 
 export async function POST(req: Request) {
   try {
@@ -42,28 +39,65 @@ export async function POST(req: Request) {
     }
 
     const event = JSON.parse(rawBody);
-    const { orderId } = event.event.data.metadata;
 
     if (event.event.type === 'charge:confirmed') {
+      const metadata = event.event.data.metadata;
+      const { orderId, contactMethod, contactValue, itemName, itemDescription } = metadata;
+      const amount = event.event.data.pricing.local.amount;
+      const currency = event.event.data.pricing.local.currency;
+
+      // Update order status in database
       await db.orders.update(orderId, {
         status: 'completed',
         updatedAt: Date.now(),
       });
 
-      // Notify Discord
-      await DISCORD_WEBHOOK.fetch('', {
+      // Send notification to Discord with enhanced information
+      await fetch(DISCORD_WEBHOOK_URL, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          content: `🎉 New order completed!\nOrder ID: ${orderId}\nAmount: $${event.event.data.pricing.local.amount} ${event.event.data.pricing.local.currency}`,
-          username: 'Order Bot',
-          avatar_url: 'https://your-domain.com/bot-avatar.png'
+          embeds: [{
+            title: '🎉 New Order Completed!',
+            color: 0x00ff00,
+            fields: [
+              {
+                name: 'Order ID',
+                value: orderId,
+                inline: true
+              },
+              {
+                name: 'Product',
+                value: itemName,
+                inline: true
+              },
+              {
+                name: 'Amount',
+                value: `${amount} ${currency}`,
+                inline: true
+              },
+              {
+                name: 'Description',
+                value: itemDescription || 'No description provided',
+                inline: false
+              },
+              {
+                name: 'Contact Information',
+                value: `Method: ${contactMethod}\nValue: ${contactValue}`,
+                inline: false
+              }
+            ],
+            timestamp: new Date().toISOString()
+          }]
         })
       });
     }
 
     return new Response('OK', { status: 200 });
   } catch (error) {
-    console.error('Error processing Coinbase webhook:', error);
+    console.error('Error processing webhook:', error);
     return new Response('Internal server error', { status: 500 });
   }
 } 
