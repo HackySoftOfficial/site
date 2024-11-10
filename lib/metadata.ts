@@ -1,19 +1,25 @@
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
+interface Metadata {
+  siteName: string | null;
+  supportEmail: string | null;
+}
 
-export async function getDynamicMetadata() {
+const DEFAULT_METADATA: Metadata = {
+  siteName: null,
+  supportEmail: null
+};
+
+export async function getDynamicMetadata(): Promise<Metadata> {
   try {
-    const settingsDoc = await getDoc(doc(db, "settings", "general"));
-    if (settingsDoc.exists()) {
-      const data = settingsDoc.data();
-      return {
-        siteName: data.siteName || null,
-        supportEmail: data.supportEmail || null,
-      };
-    }
-    return { siteName: null, supportEmail: null };
+    const data = await ORDERS_KV.get('site-settings');
+    if (!data) return DEFAULT_METADATA;
+    
+    const settings = JSON.parse(data);
+    return {
+      siteName: settings.siteName || null,
+      supportEmail: settings.supportEmail || null,
+    };
   } catch (error) {
     console.error("Error loading metadata:", error);
-    return { siteName: null, supportEmail: null };
+    return DEFAULT_METADATA;
   }
 } 

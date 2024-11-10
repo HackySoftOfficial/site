@@ -27,9 +27,9 @@ export async function POST(req: Request) {
 export async function GET() {
   try {
     // Get settings from Cloudflare KV
-    const settings = await ORDERS_KV.get('site-settings', { type: 'json' });
+    const data = await ORDERS_KV.get('site-settings');
     
-    if (!settings) {
+    if (!data) {
       const defaultSettings: SiteSettings = {
         siteName: '',
         supportEmail: '',
@@ -39,7 +39,7 @@ export async function GET() {
       return NextResponse.json(defaultSettings);
     }
     
-    return NextResponse.json(settings as SiteSettings);
+    return NextResponse.json(JSON.parse(data));
   } catch (error) {
     console.error('Error fetching settings:', error);
     return NextResponse.json(

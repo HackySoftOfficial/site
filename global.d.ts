@@ -8,4 +8,7 @@ interface KVNamespace {
 
 declare global {
   const ORDERS_KV: KVNamespace;
-} 
+  const DB: D1Database;
+}
+
+export {}; 

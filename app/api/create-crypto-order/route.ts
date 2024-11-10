@@ -48,7 +48,15 @@ export async function POST(req: Request) {
       updatedAt: now,
       coinbaseChargeId: chargeData.id,
       contactMethod: data.contactMethod,
-      contactValue: data.contactValue
+      contactValue: data.contactValue,
+      customer: {
+        name: data.contactValue,
+        email: data.contactValue
+      },
+      product: {
+        name: data.productId,
+        price: data.amount
+      }
     });
 
     return new Response(JSON.stringify({ 

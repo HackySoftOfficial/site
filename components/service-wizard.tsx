@@ -174,7 +174,7 @@ function CryptoPaymentDialog({ amount, onClose, productId }: CryptoPaymentDialog
   );
 }
 
-export function ServiceWizard() {
+export default function ServiceWizard() {
   const [selectedTier, setSelectedTier] = useState<keyof typeof PRODUCT_TIERS>('starter');
   const [complexity, setComplexity] = useState(0);
   const [price, setPrice] = useState(PRODUCT_TIERS.starter.basePrice);

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import { Order } from '@/lib/db';
 
@@ -62,6 +64,12 @@ export async function GET(request: Request) {
                (order.contactValue?.toLowerCase() || '').includes(searchLower) ||
                (order.contactMethod?.toLowerCase() || '').includes(searchLower);
       });
+    }
+
+    // Add limit parameter handling
+    const limit = searchParams.get('limit');
+    if (limit) {
+      orders = orders.slice(0, parseInt(limit));
     }
 
     return NextResponse.json({ orders });

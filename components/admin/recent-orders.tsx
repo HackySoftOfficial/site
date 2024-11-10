@@ -9,8 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
 
 interface Order {
   id: string;
@@ -23,7 +21,11 @@ interface Order {
     price: number;
   };
   status: "pending" | "completed" | "failed";
-  createdAt: Date;
+  createdAt: number;
+}
+
+interface OrdersResponse {
+  orders: Order[];
 }
 
 export function RecentOrders() {
@@ -31,28 +33,18 @@ export function RecentOrders() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRecentOrders = async () => {
+    async function fetchRecentOrders() {
       try {
-        const ordersQuery = query(
-          collection(db, "orders"),
-          orderBy("createdAt", "desc"),
-          limit(5)
-        );
-
-        const snapshot = await getDocs(ordersQuery);
-        const fetchedOrders = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: doc.data().createdAt.toDate()
-        })) as Order[];
-
-        setOrders(fetchedOrders);
+        const response = await fetch('/api/admin/orders?limit=5');
+        if (!response.ok) throw new Error('Failed to fetch orders');
+        const data = await response.json() as OrdersResponse;
+        setOrders(data.orders);
       } catch (error) {
         console.error("Error fetching recent orders:", error);
       } finally {
         setIsLoading(false);
       }
-    };
+    }
 
     fetchRecentOrders();
   }, []);
@@ -117,7 +109,7 @@ export function RecentOrders() {
                   {order.status}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
-                  {order.createdAt.toLocaleDateString()}
+                  {new Date(order.createdAt).toLocaleDateString()}
                 </span>
               </div>
             </div>

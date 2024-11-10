@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Users, Package, ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
+import type { Order } from "@/lib/db";
+
+interface OrdersResponse {
+  orders: Order[];
+}
 
 interface Stats {
   revenue: number;
@@ -29,34 +32,35 @@ export function StatsCards() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const now = new Date();
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+        const now = Date.now();
+        const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+        const sixtyDaysAgo = now - 60 * 24 * 60 * 60 * 1000;
 
-        // Current period orders
-        const currentOrdersQuery = query(
-          collection(db, "orders"),
-          where("createdAt", ">=", Timestamp.fromDate(thirtyDaysAgo))
-        );
-        const currentOrdersSnap = await getDocs(currentOrdersQuery);
-        
-        // Previous period orders
-        const previousOrdersQuery = query(
-          collection(db, "orders"),
-          where("createdAt", ">=", Timestamp.fromDate(sixtyDaysAgo)),
-          where("createdAt", "<", Timestamp.fromDate(thirtyDaysAgo))
-        );
-        const previousOrdersSnap = await getDocs(previousOrdersQuery);
+        // Fetch orders for both periods
+        const [currentResponse, previousResponse] = await Promise.all([
+          fetch(`/api/admin/orders?dateRange=month`),
+          fetch(`/api/admin/orders?from=${sixtyDaysAgo}&to=${thirtyDaysAgo}`)
+        ]);
+
+        if (!currentResponse.ok || !previousResponse.ok) {
+          throw new Error('Failed to fetch orders');
+        }
+
+        const currentData = await currentResponse.json() as OrdersResponse;
+        const previousData = await previousResponse.json() as OrdersResponse;
+
+        const currentOrders = currentData.orders;
+        const previousOrders = previousData.orders;
 
         // Calculate current period stats
-        const currentRevenue = currentOrdersSnap.docs.reduce((sum, doc) => sum + doc.data().amount, 0);
-        const currentClients = new Set(currentOrdersSnap.docs.map(doc => doc.data().customer.email)).size;
-        const currentProjects = currentOrdersSnap.docs.length;
+        const currentRevenue = currentOrders.reduce((sum, order) => sum + order.amount, 0);
+        const currentClients = new Set(currentOrders.map(order => order.customer.email)).size;
+        const currentProjects = currentOrders.length;
 
         // Calculate previous period stats
-        const previousRevenue = previousOrdersSnap.docs.reduce((sum, doc) => sum + doc.data().amount, 0);
-        const previousClients = new Set(previousOrdersSnap.docs.map(doc => doc.data().customer.email)).size;
-        const previousProjects = previousOrdersSnap.docs.length;
+        const previousRevenue = previousOrders.reduce((sum, order) => sum + order.amount, 0);
+        const previousClients = new Set(previousOrders.map(order => order.customer.email)).size;
+        const previousProjects = previousOrders.length;
 
         // Calculate percentage changes
         const revenueChange = previousRevenue ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;

@@ -1,4 +1,4 @@
-import { ServiceWizard } from '@/components/service-wizard';
+import ServiceWizard from '@/components/service-wizard';
 
 export default function ServicesPage() {
   return (

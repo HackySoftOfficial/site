@@ -63,7 +63,15 @@ export async function POST(req: Request) {
         updatedAt: now,
         coinbaseChargeId: chargeData.id,
         contactMethod: data.contactMethod,
-        contactValue: data.contactValue
+        contactValue: data.contactValue,
+        customer: {
+          name: data.contactValue,
+          email: data.contactValue
+        },
+        product: {
+          name: data.productId,
+          price: data.price
+        }
       });
 
       return NextResponse.json({ 
@@ -109,6 +117,14 @@ export async function POST(req: Request) {
         coinbaseChargeId: chargeData.id,
         contactMethod: data.contactMethod,
         contactValue: data.contactValue,
+        customer: {
+          name: data.contactValue,
+          email: data.contactValue
+        },
+        product: {
+          name: `Custom ${data.serviceType} Service`,
+          price: data.price
+        },
         metadata: {
           serviceType: data.serviceType,
           projectSize: data.projectSize,

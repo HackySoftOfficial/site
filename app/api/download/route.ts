@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Order } from '@/lib/db';
+import { db } from '@/lib/db';
 
 interface DownloadRequest {
   repoName: string;
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const { repoName, sessionId } = await req.json() as DownloadRequest;
 
     // Verify order exists and is paid
-    const order = await ORDERS_KV.get(sessionId, { type: 'json' }) as Order | null;
+    const order = await db.orders.findFirst(sessionId);
     if (!order || order.status !== 'completed') {
       return NextResponse.json({ error: 'Payment required' }, { status: 402 });
     }

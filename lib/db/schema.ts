@@ -4,7 +4,7 @@ export interface Order {
   amount: number;
   cryptoType: string;
   cryptoAddress: string;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'completed' | 'failed';
   email?: string;
   transactionHash?: string;
   createdAt: number;
