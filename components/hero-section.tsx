@@ -69,7 +69,7 @@ export function HeroSection() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <Button size="lg" className="bg-primary hover:bg-primary/90" asChild>
+              <Button size="lg" className="bg-primary hover:bg-primary/90 flex items-center justify-center" asChild>
                 <Link href="/services">
                   Get Started <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

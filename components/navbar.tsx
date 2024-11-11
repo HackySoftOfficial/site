@@ -38,7 +38,7 @@ export function Navbar() {
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            className="container mx-auto flex h-14 items-center justify-center px-4"
+            className="container mx-auto flex h-14 items-center justify-between px-4"
             initial={{ opacity: 0, y: -50 }}
             animate={{ 
               opacity: 1, 
@@ -60,14 +60,50 @@ export function Navbar() {
               }
             }}
           >
+            <motion.div
+              className="flex items-center space-x-4"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.8 }}
+              exit={{
+                opacity: 0,
+                x: -50,
+                transition: { duration: 0.3 }
+              }}
+            >
+              <NavigationMenuItem className="font-bold hover:bg-accent/30 rounded-md transition-colors">
+                <Link href="/" legacyBehavior passHref>
+                  <NavigationMenuLink className="bg-transparent">
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ 
+                        opacity: 1,
+                        color: shouldDestroy ? 'hsl(var(--destructive))' : 'currentColor'
+                      }}
+                      transition={{ 
+                        delay: 0.5,
+                        color: { duration: 0.3 }
+                      }}
+                      className="flex items-center px-3 py-2"
+                    >
+                      HackySoft
+                      <Sparkles className={cn(
+                        "ml-2 h-4 w-4",
+                        shouldDestroy ? "text-destructive animate-pulse" : "text-primary/70"
+                      )} />
+                    </motion.span>
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+            </motion.div>
+
             <NavigationMenu className="bg-transparent">
               <NavigationMenuList className="bg-transparent flex justify-center space-x-4">
                 {[
-                  { href: "/", text: "HackySoft", className: "font-bold" },
-                  { href: "/services", text: "Services", className: "ml-6" },
+                  { href: "/services", text: "Services" },
                   { href: "/projects", text: "Projects" },
                   { href: "/about", text: "About" },
-                  { href: "/menu", text: "Menu", className: "ml-6" }
+                  { href: "/menu", text: "Menu" }
                 ].map((item, index) => (
                   <motion.div
                     key={item.href}
@@ -86,7 +122,6 @@ export function Navbar() {
                     custom={index}
                   >
                     <NavigationMenuItem className={cn(
-                      item.className,
                       "hover:bg-accent/30 rounded-md transition-colors"
                     )}>
                       <Link href={item.href} legacyBehavior passHref>
@@ -104,12 +139,6 @@ export function Navbar() {
                             className="flex items-center px-3 py-2"
                           >
                             {item.text}
-                            {item.text === "HackySoft" && (
-                              <Sparkles className={cn(
-                                "ml-2 h-4 w-4",
-                                shouldDestroy ? "text-destructive animate-pulse" : "text-primary/70"
-                              )} />
-                            )}
                           </motion.span>
                         </NavigationMenuLink>
                       </Link>
@@ -120,7 +149,7 @@ export function Navbar() {
             </NavigationMenu>
             
             <motion.div 
-              className="ml-auto flex items-center"
+              className="flex items-center"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.8 }}
