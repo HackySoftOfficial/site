@@ -34,11 +34,11 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className="fixed top-0 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl backdrop-saturate-150 supports-[backdrop-filter]:bg-background/30">
+    <header className="fixed top-0 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl backdrop-saturate-150 supports-[backdrop-filter]:bg-background/30 overflow-hidden">
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            className="container flex h-14 items-center"
+            className="container mx-auto flex h-14 items-center justify-center px-4"
             initial={{ opacity: 0, y: -50 }}
             animate={{ 
               opacity: 1, 
@@ -61,7 +61,7 @@ export function Navbar() {
             }}
           >
             <NavigationMenu className="bg-transparent">
-              <NavigationMenuList className="bg-transparent">
+              <NavigationMenuList className="bg-transparent flex justify-center space-x-4">
                 {[
                   { href: "/", text: "HackySoft", className: "font-bold" },
                   { href: "/services", text: "Services", className: "ml-6" },
