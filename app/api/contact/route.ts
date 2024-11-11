@@ -9,7 +9,7 @@ interface ContactFormData {
   hcaptchaToken: string;
 }
 
-const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1305317506520449129/YVgRtYaWoxeOkijkeZvGRoohvaBSdM619rgCibFK_L4hXGGqs_i1FvIFVtJnZ4pXnj_h';
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1305531529472118855/EegPmCEEoOUsFIURZeNs4rLg4ZhCCq1Wa6NAlljhDJwN_GaXBB86VsLzFWynoZE70zsj';
 const HCAPTCHA_SECRET_KEY = 'ES_98291cd9d012455f8f8137f067285a7e';
 
 export async function POST(req: Request) {
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         embeds: [{
-          title: '❓ New Support Enquiry',
+          title: '❓ New Support Email Received',
           color: 0x00ff00,
           fields: [
             {
