@@ -26,7 +26,6 @@
     "allowUnreachableCode": true,
     "exactOptionalPropertyTypes": false,
     "ignoreDeprecations": "5.0",
-    "suppressImplicitAnyIndexErrors": true,
     "plugins": [
       {
         "name": "next"
@@ -35,7 +34,6 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@prosopo/*": ["node_modules/@prosopo/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

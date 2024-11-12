@@ -8,10 +8,15 @@ import { useState, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export function Navbar() {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [shouldDestroy, setShouldDestroy] = useState(false);
+interface NavItem {
+  href: string;
+  text: string;
+}
+
+export function Navbar(): JSX.Element {
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [shouldDestroy, setShouldDestroy] = useState<boolean>(false);
 
   useEffect(() => {
     // Start entrance animation after component mounts
@@ -32,6 +37,14 @@ export function Navbar() {
       clearTimeout(destroyTimer);
     };
   }, []);
+
+  const navItems: NavItem[] = [
+    { href: "/services", text: "Services" },
+    { href: "/projects", text: "Projects" },
+    { href: "/aiart", text: "AI Art" },
+    { href: "/about", text: "About" },
+    { href: "/menu", text: "Menu" }
+  ];
 
   return (
     <header className="fixed top-0 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl backdrop-saturate-150 supports-[backdrop-filter]:bg-background/30 overflow-hidden">
@@ -99,12 +112,7 @@ export function Navbar() {
 
             <NavigationMenu className="bg-transparent">
               <NavigationMenuList className="bg-transparent flex justify-center space-x-4">
-                {[
-                  { href: "/services", text: "Services" },
-                  { href: "/projects", text: "Projects" },
-                  { href: "/about", text: "About" },
-                  { href: "/menu", text: "Menu" }
-                ].map((item, index) => (
+                {navItems.map((item, index) => (
                   <motion.div
                     key={item.href}
                     initial={{ opacity: 0, y: -20 }}
@@ -159,13 +167,13 @@ export function Navbar() {
                 transition: { duration: 0.3 }
               }}
             >
-              <Button 
-                variant="ghost" 
-                asChild
-                className="bg-background/50 hover:bg-accent/30 backdrop-blur-sm"
-              >
-                <Link href="/contact">Contact</Link>
-              </Button>
+              <Link href="/contact" passHref>
+                <Button 
+                  className="bg-background/50 hover:bg-accent/30 backdrop-blur-sm"
+                >
+                  Contact
+                </Button>
+              </Link>
             </motion.div>
           </motion.div>
         )}

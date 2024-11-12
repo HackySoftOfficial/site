@@ -1,36 +1,48 @@
 "use client";
 
-import { useState, useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import HCaptcha from '@hcaptcha/react-hcaptcha';
+import { Turnstile } from '@/components/turnstile';
 
-const ChatContent = dynamic(() => import('./chat-content'), { ssr: false });
+const ChatContent = dynamic(() => import('./chat-content'), { 
+  ssr: false,
+  loading: () => (
+    <div className="flex-1 flex items-center justify-center">
+      <p className="text-muted-foreground">Loading chat...</p>
+    </div>
+  )
+});
 
-interface CaptchaResponse {
+interface VerificationResponse {
   success: boolean;
 }
 
 export default function ChatInterface() {
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [hcaptchaToken, setHcaptchaToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [isDevelopment, setIsDevelopment] = useState(false);
 
-  const handleCaptchaVerify = (token: string) => {
-    setHcaptchaToken(token);
-    verifyCaptcha(token);
-  };
+  // Move the development check to useEffect
+  useEffect(() => {
+    const isDevEnvironment = 
+      process.env.NODE_ENV === 'development' || 
+      window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1';
+    
+    setIsDevelopment(isDevEnvironment);
+    
+    if (isDevEnvironment) {
+      setToken('development');
+    }
+  }, []);
 
-  const verifyCaptcha = useCallback(async (token: string) => {
-    if (!token) {
-      setError('Please complete the captcha verification.');
+  const handleVerification = async (token: string) => {
+    if (isDevelopment) {
+      setToken('development');
       return;
     }
 
-    setIsLoading(true);
     try {
-      const response = await fetch('/api/verify-hcaptcha', {
+      const response = await fetch('/api/verify-turnstile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,49 +50,35 @@ export default function ChatInterface() {
         body: JSON.stringify({ token }),
       });
 
-      const data: CaptchaResponse = await response.json();
-      if (!data.success) {
-        throw new Error('Captcha verification failed');
+      const data: VerificationResponse = await response.json();
+
+      if (data.success) {
+        setToken('verified');
       }
-      setIsVerified(true);
     } catch (error) {
-      setError('Verification failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+      console.error('Error verifying captcha:', error);
     }
-  }, []);
-
-  if (!isVerified) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-        <div className="flex flex-col items-center space-y-4">
-          <HCaptcha
-            sitekey="2d4a6528-6638-4142-811c-f4ceff6af7e0"
-            onVerify={handleCaptchaVerify}
-            theme="light"
-          />
-          
-          {error && (
-            <div className="text-red-500 text-sm text-center">
-              {error}
-            </div>
-          )}
-
-          {isLoading && (
-            <div className="text-muted-foreground text-sm text-center">
-              <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
-              Verifying...
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
+  };
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] max-w-5xl mx-auto bg-background">
       <div className="flex-1 overflow-hidden rounded-lg border shadow-sm">
-        <ChatContent />
+        {token ? (
+          <ChatContent 
+            token={token} 
+            onVerify={handleVerification}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full space-y-4">
+            <p className="text-muted-foreground">Please complete verification to continue</p>
+            <Turnstile
+              onSuccess={handleVerification}
+              onError={() => {
+                console.error("Verification failed");
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

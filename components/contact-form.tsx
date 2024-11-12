@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,36 +17,43 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import HCaptcha from '@hcaptcha/react-hcaptcha';
+import { Turnstile } from '@/components/turnstile';
+import type { TurnstileInstance } from '@marsidev/react-turnstile';
 
 // Define the form schema type
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   message: z.string().min(10, "Message must be at least 10 characters"),
-  hcaptchaToken: z.string().min(1, "Please complete the hCaptcha verification")
+  turnstileToken: z.string().min(1, "Please complete the verification")
 });
 
 // Create a type from the schema
 type ContactFormValues = z.infer<typeof formSchema>;
 
 // Define the API response types
-interface SuccessResponse {
-  success: boolean;
+interface ApiSuccessResponse {
+  success: true;
 }
 
-interface ErrorResponse {
+interface ApiErrorResponse {
+  success: false;
   error: string;
   remainingTime?: number;
 }
 
-type ApiResponse = SuccessResponse | ErrorResponse;
+type ApiResponse = ApiSuccessResponse | ApiErrorResponse;
+
+// Add this interface for the Turnstile ref
+interface TurnstileRef {
+  reset: () => void;
+}
 
 export function ContactForm(): JSX.Element {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [cooldown, setCooldown] = useState<number>(0);
-  const captchaRef = useRef<HCaptcha>(null);
+  const captchaRef = useRef<TurnstileInstance>(null);
   
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(formSchema),
@@ -54,20 +61,21 @@ export function ContactForm(): JSX.Element {
       name: "",
       email: "",
       message: "",
-      hcaptchaToken: "",
+      turnstileToken: "",
     },
   });
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (cooldown > 0) {
-      const timer = setTimeout(() => {
-        setCooldown(prev => Math.max(0, prev - 1));
+      timer = setTimeout(() => {
+        setCooldown((prev) => Math.max(0, prev - 1));
       }, 1000);
-      return () => clearTimeout(timer);
     }
+    return () => clearTimeout(timer);
   }, [cooldown]);
 
-  const onSubmit = async (values: ContactFormValues): Promise<void> => {
+  const onSubmit: SubmitHandler<ContactFormValues> = async (values) => {
     if (cooldown > 0) {
       toast({
         title: "Please wait",
@@ -87,7 +95,7 @@ export function ContactForm(): JSX.Element {
         body: JSON.stringify(values),
       });
 
-      const data = await response.json() as ApiResponse;
+      const data = (await response.json()) as ApiResponse;
 
       if (!response.ok) {
         if (response.status === 403) {
@@ -102,8 +110,8 @@ export function ContactForm(): JSX.Element {
       });
       form.reset();
       setCooldown(30);
-      captchaRef.current?.resetCaptcha();
-      form.setValue('hcaptchaToken', '');
+      captchaRef.current?.reset();
+      form.setValue('turnstileToken', '');
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -114,6 +122,18 @@ export function ContactForm(): JSX.Element {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleTurnstileSuccess = (token: string): void => {
+    form.setValue('turnstileToken', token);
+  };
+
+  const handleTurnstileError = (): void => {
+    console.error("Verification failed");
+    form.setError('turnstileToken', {
+      type: 'manual',
+      message: 'Verification failed. Please try again.'
+    });
   };
 
   return (
@@ -139,7 +159,7 @@ export function ContactForm(): JSX.Element {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="your@email.com" {...field} />
+                <Input type="email" placeholder="your@email.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -165,15 +185,14 @@ export function ContactForm(): JSX.Element {
 
         <FormField
           control={form.control}
-          name="hcaptchaToken"
+          name="turnstileToken"
           render={() => (
             <FormItem>
               <FormControl>
-                <HCaptcha
-                  ref={captchaRef}
-                  sitekey="2d4a6528-6638-4142-811c-f4ceff6af7e0"
-                  onVerify={(token) => form.setValue('hcaptchaToken', token)}
-                  theme="light"
+                <Turnstile
+                  sitekey="0x4AAAAAAAzsPzeKVZCumamS"
+                  onSuccess={handleTurnstileSuccess}
+                  onError={handleTurnstileError}
                 />
               </FormControl>
               <FormMessage />

@@ -2,49 +2,53 @@ import { NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 
-interface VerifyHcaptchaRequest {
+interface VerifyRequest {
   token: string;
 }
 
-// Using a constant since this is a public site key
-const HCAPTCHA_SECRET_KEY = 'ES_98291cd9d012455f8f8137f067285a7e';
+interface TurnstileResponse {
+  success: boolean;
+  challenge_ts?: string;
+  hostname?: string;
+  'error-codes'?: string[];
+}
+
+const TURNSTILE_SECRET_KEY = "0x4AAAAAAAzsP9F6rERuhc7Y-mKEYJRsB3k";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json() as Partial<VerifyHcaptchaRequest>;
+    const body = await req.json() as Partial<VerifyRequest>;
     
     if (!body.token) {
       return NextResponse.json(
-        { error: 'Token is required' },
+        { success: false, error: 'Token is required' },
         { status: 400 }
       );
     }
 
-    const response = await fetch('https://hcaptcha.com/siteverify', {
+    const formData = new URLSearchParams();
+    formData.append('secret', TURNSTILE_SECRET_KEY);
+    formData.append('response', body.token);
+
+    const result = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        secret: HCAPTCHA_SECRET_KEY,
-        response: body.token,
-      }),
+      body: formData,
     });
 
-    const data: { success: boolean } = await response.json();
+    const outcome = await result.json() as TurnstileResponse;
     
-    if (!data.success) {
+    if (!outcome.success) {
       return NextResponse.json(
-        { error: 'Invalid token' },
+        { success: false, error: 'Invalid token' },
         { status: 400 }
       );
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('hCaptcha verification error:', error);
+    console.error('Turnstile verification error:', error);
     return NextResponse.json(
-      { error: 'Verification failed' },
+      { success: false, error: 'Verification failed' },
       { status: 500 }
     );
   }

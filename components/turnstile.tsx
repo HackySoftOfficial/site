@@ -1,59 +1,25 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Turnstile as TurnstileComponent } from '@marsidev/react-turnstile';
 import { useTheme } from "next-themes";
 
-interface TurnstileProps {
+export interface TurnstileProps {
   onSuccess: (token: string) => void;
   onError?: () => void;
+  sitekey?: string;
 }
 
-export function Turnstile({ onSuccess, onError }: TurnstileProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+export function Turnstile({ onSuccess, onError, sitekey }: TurnstileProps) {
   const { theme } = useTheme();
 
-  useEffect(() => {
-    const loadTurnstile = async () => {
-      if (!containerRef.current) return;
-
-      // Reset container if widget was previously rendered
-      containerRef.current.innerHTML = "";
-
-      // @ts-ignore - Turnstile is loaded via script
-      window.turnstile.render(containerRef.current, {
-        sitekey: "0x4AAAAAAAzsUquHurDSPtR_", // Replace with your actual site key
+  return (
+    <TurnstileComponent
+      siteKey={sitekey || "0x4AAAAAAAzsPzeKVZCumamS"}
+      options={{
         theme: theme === "dark" ? "dark" : "light",
-        callback: (token: string) => {
-          onSuccess(token);
-        },
-        "error-callback": () => {
-          onError?.();
-        },
-      });
-    };
-
-    // Store the current ref value
-    const currentContainer = containerRef.current;
-
-    // Load Turnstile if not already loaded
-    if (!window.turnstile) {
-      const script = document.createElement("script");
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-      script.onload = loadTurnstile;
-    } else {
-      loadTurnstile();
-    }
-
-    return () => {
-      // Use the stored ref value in cleanup
-      if (currentContainer) {
-        currentContainer.innerHTML = "";
-      }
-    };
-  }, [onSuccess, onError, theme]);
-
-  return <div ref={containerRef} />;
+      }}
+      onSuccess={onSuccess}
+      onError={onError}
+    />
+  );
 } 
