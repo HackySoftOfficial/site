@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HackySoft - Products</title>
+    <link rel="icon" href="HS.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f97316;
+            --background: #000000;
+            --muted: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --muted-foreground: rgba(255, 255, 255, 0.5);
+            --glow: 0 0 10px rgba(249, 115, 22, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        ::selection {
+            background: var(--primary);
+            color: var(--text);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.5;
+            perspective: 1000px;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            position: relative;
+            width: 100%;
+        }
+
+        /* Header & Navigation */
+        header {
+            padding: 1.5rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        header:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover {
+            text-shadow: var(--glow);
+            transform: scale(1.05);
+        }
+
+        .logo img {
+            height: 40px;
+            margin-right: 10px;
+            filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.3));
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            text-shadow: var(--glow);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Products Section */
+        .products-section {
+            min-height: 100vh;
+            padding-top: 120px;
+            padding-bottom: 80px;
+            background: radial-gradient(circle at top right, rgba(249, 115, 22, 0.15), transparent 50%);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            flex: 1;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            padding: 2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--glow);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .product-title {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .product-description {
+            color: var(--muted-foreground);
+            margin-bottom: 1.5rem;
+        }
+
+        .product-price {
+            font-size: 1.25rem;
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+
+        .buy-button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: var(--text);
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .buy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow);
+        }
+
+        /* Footer styles */
+        footer {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 3rem 0;
+            position: relative;
+            width: 100%;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section {
+            padding: 1rem;
+        }
+
+        .footer-section h4 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .footer-section p {
+            color: var(--muted-foreground);
+            margin-bottom: 1rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-links a {
+            color: var(--text);
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-bottom p {
+            color: var(--muted-foreground);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .social-links {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <img src="HS.png" alt="HackySoft Logo">
+                    HackySoft
+                </a>
+                <nav class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/products">Products</a>
+                    <a href="/contact">Contact</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="products-section">
+            <div class="container">
+                <div class="products-grid">
+                    <div class="product-card">
+                        <img src="product1.jpg" alt="Product 1" class="product-image">
+                        <h3 class="product-title">Custom Software Development</h3>
+                        <p class="product-description">Tailored software solutions designed to meet your specific business needs and requirements.</p>
+                        <p class="product-price">Starting from $5,000</p>
+                        <button class="buy-button">Get Started</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="product2.jpg" alt="Product 2" class="product-image">
+                        <h3 class="product-title">Web Application Development</h3>
+                        <p class="product-description">Modern, responsive web applications built with cutting-edge technologies.</p>
+                        <p class="product-price">Starting from $3,000</p>
+                        <button class="buy-button">Get Started</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="product3.jpg" alt="Product 3" class="product-image">
+                        <h3 class="product-title">Mobile App Development</h3>
+                        <p class="product-description">Native and cross-platform mobile applications for iOS and Android.</p>
+                        <p class="product-price">Starting from $4,000</p>
+                        <button class="buy-button">Get Started</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About Us</h4>
+                    <p>HackySoft provides professional development services with a focus on innovation and excellence.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>Email: contact@hackysoft.com</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="https://github.com/HackySoftOfficial" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i></a>
+                        <a href="https://dsc.gg/hackysoft" target="_blank" rel="noopener noreferrer"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 HackySoft. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Add click handlers for buy buttons
+        document.querySelectorAll('.buy-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const product = button.closest('.product-card').querySelector('.product-title').textContent;
+                alert(`Thank you for your interest in ${product}! Please contact us to discuss your project.`);
+            });
+        });
+    </script>
+</body>
+</html>
