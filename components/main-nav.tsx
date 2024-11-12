@@ -25,6 +25,10 @@ const routes = [
     isTeamLink: true,
   },
   {
+    href: "/blog",
+    label: "Blog",
+  },
+  {
     href: "/chat",
     label: "Chat",
   },

@@ -56,6 +56,7 @@
     "@splinetool/react-spline": "^4.0.0",
     "@splinetool/runtime": "^1.9.37",
     "@stripe/stripe-js": "^2.4.0",
+    "@tailwindcss/typography": "^0.5.15",
     "@types/node": "20.6.2",
     "@types/react": "18.2.22",
     "@types/react-dom": "18.2.7",
@@ -69,7 +70,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
-    "date-fns": "^3.6.0",
+    "date-fns": "^2.30.0",
     "embla-carousel-react": "^8.3.1",
     "encoding": "^0.1.13",
     "eslint": "8.49.0",
@@ -80,8 +81,10 @@
     "input-otp": "^1.4.1",
     "litecoin-core": "^1.1.0",
     "lucide-react": "^0.446.0",
+    "marked": "^9.1.6",
+    "@types/marked": "^5.0.2",
     "nanoid": "^5.0.8",
-    "next": "15.0.4-canary.4",
+    "next": "latest",
     "next-themes": "^0.3.0",
     "node-fetch": "^3.3.2",
     "openai": "^4.71.1",
@@ -109,7 +112,8 @@
     "vaul": "^0.9.9",
     "vc": "^0.1.4",
     "zod": "^3.23.8",
-    "zustand": "^4.5.5"
+    "zustand": "^4.5.5",
+    "together-ai": "^0.9.0"
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.5",
@@ -118,3 +122,4 @@
   },
   "packageManager": "pnpm@9.12.2+sha512.22721b3a11f81661ae1ec68ce1a7b879425a1ca5b991c975b074ac220b187ce56c708fe5db69f4c962c989452eee76c82877f4ee80f474cebd61ee13461b6228"
 }
+

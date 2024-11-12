@@ -1,19 +1,14 @@
-name = "your-project-name"
+name = "hackysoft"
 compatibility_flags = [ "nodejs_compat" ]
 compatibility_date = "2024-09-23"
 
 [build]
 command = "pnpm run pages:build"
 
-# R2 Bucket binding
-[[r2_buckets]]
-binding = "STORAGE"
-bucket_name = "discord"
-
-# KV namespace for orders
+# KV namespace for blog posts
 [[kv_namespaces]]
-binding = "ORDERS_KV"
-id = "49c455bf9c6641638394f672ed0dfca0"
+binding = "assets"
+id = "6cad3744e6654db595fbe1fd444efdae"
 
 [vars]
 NEXT_PUBLIC_BASE_URL = "https://hackysoft.xyz"

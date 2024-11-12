@@ -50,8 +50,26 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            code: {
+              color: 'hsl(var(--primary))',
+              '&::before': {
+                content: '""',
+              },
+              '&::after': {
+                content: '""',
+              },
+            },
+            'pre code': {
+              color: 'inherit',
+            },
+          },
+        },
+      },
     },
   },
   darkMode: "class",
-  plugins: [nextui()]
+  plugins: [nextui(), require('@tailwindcss/typography')]
 }; 
