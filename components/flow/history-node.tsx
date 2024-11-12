@@ -1,10 +1,8 @@
 "use client";
 
 import { Handle, Position, NodeProps } from 'reactflow';
-import { Button } from '@/components/ui/button';
 import { History } from 'lucide-react';
 import { useChatStore } from '@/lib/stores/chat-store';
-import { nanoid } from 'nanoid';
 
 interface HistoryNodeData {
   label: string;
@@ -15,14 +13,20 @@ interface HistoryNodeData {
 export function HistoryNode({ data }: NodeProps<HistoryNodeData>) {
   const { chats } = useChatStore();
 
-  const handleClick = () => {
-    // Check if history node already exists
-    const event = new CustomEvent('checkHistoryNode');
-    window.dispatchEvent(event);
+  const onDragStart = (event: React.DragEvent) => {
+    // Create a custom event when dragging starts
+    const dragEvent = new CustomEvent('checkHistoryNode', {
+      detail: { isDragging: true }
+    });
+    window.dispatchEvent(dragEvent);
   };
 
   return (
-    <div className="p-4 rounded-lg border bg-background shadow-lg w-[280px] hover:shadow-xl transition-shadow">
+    <div 
+      className="p-4 rounded-lg border bg-background shadow-lg w-[280px] hover:shadow-xl transition-shadow cursor-grab active:cursor-grabbing"
+      draggable
+      onDragStart={onDragStart}
+    >
       <Handle type="target" position={Position.Top} className="w-3 h-3" />
       
       <div className="space-y-3">
@@ -33,13 +37,6 @@ export function HistoryNode({ data }: NodeProps<HistoryNodeData>) {
               <h3 className="font-medium">{data.label}</h3>
             </div>
           </div>
-          <Button 
-            size="sm" 
-            variant="outline"
-            onClick={handleClick}
-          >
-            View History
-          </Button>
         </div>
 
         <p className="text-sm text-muted-foreground">

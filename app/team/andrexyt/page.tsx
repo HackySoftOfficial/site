@@ -3,7 +3,7 @@
 import { Card, CardBody, CardHeader, Button, Progress, Chip, Avatar } from "@nextui-org/react";
 import { Github, Twitter, Link as LinkIcon, Star, GitFork } from "lucide-react";
 import Link from "next/link";
-import { PlanetBanner } from '@/components/planet-banner';
+import { CityBanner } from '@/components/three-city-banner';
 import { useEffect, useState } from "react";
 import axios from 'axios';
 
@@ -108,10 +108,7 @@ export default function AndrexYTProfile() {
     <div className="max-w-[1024px] mx-auto p-4">
       <Card className="mb-6" shadow="none">
         <CardBody className="p-0">
-          <PlanetBanner 
-            sceneUrl="https://prod.spline.design/H4Ybf7gITNLjr7LA/scene.splinecode" 
-            muted={true} 
-          />
+          <CityBanner color="#F02050" height={200} />
           <div className="px-6 py-4">
             <div className="flex justify-between items-start mb-4">
               <div className="flex gap-4 items-center">

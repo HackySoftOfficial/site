@@ -3,7 +3,7 @@
 import { Card, CardBody, CardHeader, Button, Progress, Chip, Avatar } from "@nextui-org/react";
 import { Github, Twitter, Link as LinkIcon, Star, GitFork } from "lucide-react";
 import Link from "next/link";
-import { PlanetBanner } from '@/components/planet-banner';
+import { CityBanner } from '@/components/three-city-banner';
 import { useEffect, useState } from "react";
 import axios from 'axios';
 
@@ -32,66 +32,28 @@ interface GitHubRepo {
 export default function CatdroutProfile() {
   const [userData, setUserData] = useState<GitHubUser | null>(null);
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchGitHubData = async () => {
+    const fetchUserData = async () => {
       try {
-        const [userResponse, reposResponse] = await Promise.all([
-          axios.get<GitHubUser>('https://api.github.com/users/suediedev'),
-          axios.get<GitHubRepo[]>('https://api.github.com/users/suediedev/repos')
-        ]);
-        
+        const userResponse = await axios.get<GitHubUser>('https://api.github.com/users/suediedev');
         setUserData(userResponse.data);
+
+        const reposResponse = await axios.get<GitHubRepo[]>('https://api.github.com/users/suediedev/repos');
         setRepos(reposResponse.data);
       } catch (error) {
-        const errorMessage = axios.isAxiosError(error)
-          ? error.response?.data?.message || error.message
-          : 'An unknown error occurred';
-        console.error('Error fetching GitHub data:', errorMessage);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching GitHub data:', error);
       }
     };
 
-    fetchGitHubData();
+    fetchUserData();
   }, []);
-
-  if (loading) {
-    return (
-      <div className="max-w-[1024px] mx-auto p-4">
-        <Card className="mb-6">
-          <CardBody>
-            <div className="flex items-center justify-center h-40">
-              Loading profile data...
-            </div>
-          </CardBody>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-[1024px] mx-auto p-4">
-        <Card className="mb-6">
-          <CardBody>
-            <div className="flex items-center justify-center h-40 text-red-500">
-              Error: {error}
-            </div>
-          </CardBody>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-[1024px] mx-auto p-4">
       <Card className="mb-6" shadow="none">
         <CardBody className="p-0">
-          <PlanetBanner sceneUrl="https://prod.spline.design/H4Ybf7gITNLjr7LA/scene.splinecode" />
+          <CityBanner color="#4A90E2" height={200} />
           <div className="px-6 py-4">
             <div className="flex justify-between items-start mb-4">
               <div className="flex gap-4 items-center">

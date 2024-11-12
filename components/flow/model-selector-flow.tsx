@@ -336,44 +336,67 @@ export function ModelSelectorFlow() {
   }, [setEdges]);
 
   useEffect(() => {
-    const handleAddNode = (event: CustomEvent<CustomNode>) => {
-      setNodes((nds) => [...nds, event.detail]);
-    };
-
-    const handleRemoveNode = (event: CustomEvent<{ id: string }>) => {
-      setNodes((nds) => nds.filter((node) => node.id !== event.detail.id));
-    };
-
-    const handleCheckHistoryNode = () => {
-      // Check if history node already exists
+    const handleCheckHistoryNode = (event: CustomEvent<{ isDragging: boolean }>) => {
+      // Only create new history node if it doesn't exist
       const historyNodeExists = nodes.some(node => node.type === 'chatHistory');
       
       if (!historyNodeExists) {
         const newNode: CustomNode = {
           id: `history-${nanoid()}`,
           type: 'chatHistory',
+          // Position it near the cursor or in a default location
           position: { x: 700, y: 500 },
           data: {
             label: 'Chat History',
             provider: 'history' as const,
             description: 'Past conversations',
-            chats,
+            messages: chats.flatMap(chat => chat.messages),
           },
         };
         setNodes((nds) => [...nds, newNode]);
       }
     };
 
-    window.addEventListener('addNode', handleAddNode as EventListener);
-    window.addEventListener('removeNode', handleRemoveNode as EventListener);
     window.addEventListener('checkHistoryNode', handleCheckHistoryNode as EventListener);
 
     return () => {
-      window.removeEventListener('addNode', handleAddNode as EventListener);
-      window.removeEventListener('removeNode', handleRemoveNode as EventListener);
       window.removeEventListener('checkHistoryNode', handleCheckHistoryNode as EventListener);
     };
   }, [setNodes, nodes, chats]);
+
+  // Add drag and drop handlers
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+
+    // Get the position where the node was dropped
+    const reactFlowBounds = document.querySelector('.react-flow')?.getBoundingClientRect();
+    if (!reactFlowBounds) return;
+
+    const position = {
+      x: event.clientX - reactFlowBounds.left,
+      y: event.clientY - reactFlowBounds.top,
+    };
+
+    // Create a new chat history node at the drop position
+    const newNode: CustomNode = {
+      id: `history-${nanoid()}`,
+      type: 'chatHistory',
+      position,
+      data: {
+        label: 'Chat History',
+        provider: 'history' as const,
+        description: 'Past conversations',
+        messages: chats.flatMap(chat => chat.messages),
+      },
+    };
+
+    setNodes((nds) => [...nds, newNode]);
+  }, [setNodes, chats]);
 
   return (
     <div className="h-full">
@@ -390,6 +413,8 @@ export function ModelSelectorFlow() {
         minZoom={0.5}
         maxZoom={1.5}
         className="bg-background"
+        onDragOver={onDragOver}
+        onDrop={onDrop}
       >
         <Background />
         <Controls />
