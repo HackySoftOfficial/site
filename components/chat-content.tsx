@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { ArrowUp, ImagePlus } from "lucide-react";
-import { ImageResponse } from '@/lib/types';
 import { Turnstile } from '@/components/turnstile';
 
 interface Message {

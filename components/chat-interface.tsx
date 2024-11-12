@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Turnstile } from '@/components/turnstile';
 import { useChatStore } from '@/lib/stores/chat-store';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
@@ -12,123 +11,60 @@ import { useSettings } from '@/lib/stores/settings-store';
 import type { ChatMessage, ApiResponse } from '@/lib/types';
 
 export default function ChatInterface() {
-  const [token, setToken] = useState<string | null>(null);
-  const [isDevelopment, setIsDevelopment] = useState(false);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
-  const { 
-    chats, 
-    currentChatId, 
-    createChat, 
-    updateChat 
-  } = useChatStore();
-
   const { settings } = useSettings();
-  
+  const { chats, currentChatId, updateChat } = useChatStore();
   const currentChat = chats.find(chat => chat.id === currentChatId);
-
-  useEffect(() => {
-    const isDevEnvironment = 
-      process.env.NODE_ENV === 'development' || 
-      window.location.hostname === 'localhost' || 
-      window.location.hostname === '127.0.0.1';
-    
-    setIsDevelopment(isDevEnvironment);
-    
-    if (isDevEnvironment) {
-      setToken('development');
-    }
-  }, []);
-
-  const handleVerification = async (turnstileToken: string) => {
-    if (isDevelopment) {
-      setToken('development');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/verify-turnstile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token: turnstileToken }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setToken('verified');
-      }
-    } catch (error) {
-      console.error('Error verifying captcha:', error);
-    }
-  };
 
   const handleSubmit = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMessage: ChatMessage = { role: 'user', content: input };
+    const newMessage: ChatMessage = {
+      role: 'user',
+      content: input,
+    };
+
+    // Update chat with user message immediately
+    const updatedMessages = [...(currentChat?.messages || []), newMessage];
+    updateChat(currentChatId!, updatedMessages);
     setInput('');
 
-    if (!currentChatId) {
-      createChat();
-    }
-
-    const messages = currentChat 
-      ? [...currentChat.messages, userMessage]
-      : [userMessage];
-
-    updateChat(currentChatId!, messages);
-    setIsLoading(true);
-
     try {
+      setIsLoading(true);
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages,
-          token,
+          messages: updatedMessages,
           model: settings.model,
+          provider: settings.provider,
           type: 'text',
-          provider: settings.provider
         }),
       });
 
+      const data: ApiResponse = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to get AI response');
+        throw new Error(data.errors?.[0] || 'Failed to send message');
       }
 
-      const data = await response.json() as ApiResponse;
-      
-      if (!data.success) {
-        throw new Error(data.errors[0] || 'Unknown error occurred');
-      }
-
-      const assistantMessage: ChatMessage = {
+      // Add AI response to chat
+      const aiMessage: ChatMessage = {
         role: 'assistant',
-        content: data.result.response
+        content: data.result.response,
       };
 
-      const updatedMessages = [...messages, assistantMessage];
-      
-      // Generate title after first AI response
-      if (messages.length === 1) {
-        const title = await generateChatTitle(updatedMessages, settings);
-        updateChat(currentChatId!, updatedMessages, title || 'New Chat');
-      } else {
-        updateChat(currentChatId!, updatedMessages);
-      }
+      updateChat(
+        currentChatId!, 
+        [...updatedMessages, aiMessage],
+        input.slice(0, 30) + '...'
+      );
+
     } catch (error) {
-      console.error('Error sending message:', error);
-      const errorMessage: ChatMessage = {
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.'
-      };
-      updateChat(currentChatId!, [...messages, errorMessage]);
+      console.error('Failed to send message:', error);
     } finally {
       setIsLoading(false);
     }
@@ -141,57 +77,52 @@ export default function ChatInterface() {
     }
   };
 
-  if (!token) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full space-y-4">
-        <div className="text-center space-y-2">
-          <h2 className="text-lg font-semibold">Verify to Continue</h2>
-          <p className="text-muted-foreground">Please complete the verification to access the chat.</p>
-        </div>
-        <Turnstile
-          onSuccess={handleVerification}
-          onError={() => {
-            console.error("Verification failed");
-          }}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="relative flex flex-col h-[calc(100vh-10rem)]">
-      <ScrollArea className="flex-1 p-4 pb-[80px]">
+    <div className="flex h-full flex-col">
+      <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {currentChat?.messages.map((message, i) => (
             <div
               key={i}
               className={cn(
-                "flex w-max max-w-[80%] flex-col gap-2 rounded-lg px-3 py-2 text-sm",
-                message.role === 'user' 
-                  ? "ml-auto bg-primary text-primary-foreground" 
-                  : "bg-muted"
+                "flex w-full",
+                message.role === 'assistant' ? 'justify-start' : 'justify-end'
               )}
             >
-              {message.content}
+              <div
+                className={cn(
+                  "rounded-lg px-4 py-2 max-w-[80%]",
+                  message.role === 'assistant' 
+                    ? "bg-muted" 
+                    : "bg-primary text-primary-foreground"
+                )}
+              >
+                {message.content}
+              </div>
             </div>
           ))}
           {isLoading && (
-            <div className="bg-muted rounded-lg px-3 py-2 text-sm animate-pulse">
-              Thinking...
+            <div className="flex justify-start">
+              <div className="bg-muted rounded-lg px-4 py-2">
+                <div className="flex space-x-2">
+                  <div className="w-2 h-2 bg-current rounded-full animate-bounce" />
+                  <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:0.2s]" />
+                  <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:0.4s]" />
+                </div>
+              </div>
             </div>
           )}
         </div>
       </ScrollArea>
 
-      <div className="absolute bottom-0 left-0 right-0 bg-background border-t p-4">
-        <div className="flex gap-2 max-w-[1200px] mx-auto">
+      <div className="border-t bg-background p-4">
+        <div className="flex gap-2">
           <Button 
-            size="icon" 
-            variant="ghost"
+            variant="outline" 
+            size="icon"
             className="shrink-0"
-            disabled={isLoading}
           >
-            <ImagePlus className="h-5 w-5" />
+            <ImagePlus className="h-4 w-4" />
           </Button>
           <Textarea
             value={input}
@@ -200,15 +131,14 @@ export default function ChatInterface() {
             placeholder="Type a message..."
             className="min-h-[44px] resize-none"
             rows={1}
-            disabled={isLoading}
           />
           <Button 
+            className="shrink-0" 
             size="icon"
-            className="shrink-0"
-            onClick={handleSubmit}
             disabled={isLoading || !input.trim()}
+            onClick={handleSubmit}
           >
-            <Send className="h-5 w-5" />
+            <Send className="h-4 w-4" />
           </Button>
         </div>
       </div>

@@ -22,7 +22,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json() as RequestBody;
     
-    if (body.token !== 'verified' && body.token !== 'development') {
+    // Skip verification in development environment
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    if (!isDevelopment && body.token !== 'verified') {
       return NextResponse.json({
         result: { response: '' },
         success: false,
