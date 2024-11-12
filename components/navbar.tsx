@@ -41,7 +41,6 @@ export function Navbar(): JSX.Element {
   const navItems: NavItem[] = [
     { href: "/services", text: "Services" },
     { href: "/projects", text: "Projects" },
-    { href: "/aiart", text: "AI Art" },
     { href: "/about", text: "About" },
     { href: "/menu", text: "Menu" }
   ];
