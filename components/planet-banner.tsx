@@ -13,17 +13,17 @@ const ThreePlanet = dynamic(() => import('./three-planet').then(mod => mod.Three
 
 interface PlanetBannerProps {
   sceneUrl: string;
+  muted?: boolean;
 }
 
-export function PlanetBanner({ sceneUrl }: PlanetBannerProps) {
+export function PlanetBanner({ sceneUrl, muted = true }: PlanetBannerProps) {
   return (
-    <div className="h-48 w-full relative overflow-hidden">
-      <div className="h-48 w-full bg-gradient-to-br from-zinc-900 to-zinc-800" />
-      <div className="absolute inset-0 pointer-events-none">
-        <Suspense fallback={null}>
-          <ThreePlanet sceneUrl={sceneUrl} />
-        </Suspense>
-      </div>
+    <div className="w-full h-[200px] relative overflow-hidden">
+      <iframe
+        src={sceneUrl}
+        className="w-full h-full border-none"
+        allow={muted ? "autoplay" : undefined}
+      />
     </div>
   );
 } 

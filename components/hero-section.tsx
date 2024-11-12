@@ -19,9 +19,10 @@ export function HeroSection() {
       {/* Hero Section */}
       <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
         {/* Background Effects */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-black to-orange-900/90" />
         <div className="absolute inset-0 bg-grid-small-black/[0.2] dark:bg-grid-small-white/[0.2]" />
-        <div className="absolute inset-0 flex items-center justify-center bg-background [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
-        <div className="absolute pointer-events-none inset-0 flex items-center justify-center bg-background [mask-image:radial-gradient(ellipse_at_center,transparent_60%,black)] dark:bg-black" />
+        <div className="absolute inset-0 flex items-center justify-center [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
+        <div className="absolute pointer-events-none inset-0 flex items-center justify-center [mask-image:radial-gradient(ellipse_at_center,transparent_60%,black)]" />
         
         {/* Content */}
         <div className="container relative z-10 px-4">

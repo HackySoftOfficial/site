@@ -64,6 +64,18 @@ export default function AndrexYTProfile() {
     fetchGitHubData();
   }, []);
 
+  useEffect(() => {
+    const audioElements = document.getElementsByTagName('audio');
+    Array.from(audioElements).forEach(audio => {
+      audio.muted = true;
+    });
+
+    if (typeof window !== 'undefined' && window.AudioContext) {
+      const audioContext = new AudioContext();
+      audioContext.suspend();
+    }
+  }, []);
+
   if (loading) {
     return (
       <div className="max-w-[1024px] mx-auto p-4">
@@ -96,7 +108,10 @@ export default function AndrexYTProfile() {
     <div className="max-w-[1024px] mx-auto p-4">
       <Card className="mb-6" shadow="none">
         <CardBody className="p-0">
-          <PlanetBanner sceneUrl="https://prod.spline.design/JIqFUulHGLdenrXi/scene.splinecode" />
+          <PlanetBanner 
+            sceneUrl="https://prod.spline.design/H4Ybf7gITNLjr7LA/scene.splinecode" 
+            muted={true} 
+          />
           <div className="px-6 py-4">
             <div className="flex justify-between items-start mb-4">
               <div className="flex gap-4 items-center">

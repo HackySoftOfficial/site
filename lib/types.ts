@@ -1,12 +1,19 @@
-export interface Message {
-  role: 'system' | 'user' | 'assistant';
+export type Role = 'system' | 'user' | 'assistant';
+
+export interface ChatMessage {
+  role: Role;
   content: string;
   image?: string;
 }
 
-export interface ImageResponse {
+export interface ApiMessage {
+  role: Role;
+  content: string | Array<{ type: string; text?: string; image_url?: { url: string; details?: string } }>;
+}
+
+export interface ApiResponse {
   result: {
-    images: string[];
+    response: string;
   };
   success: boolean;
   errors: string[];

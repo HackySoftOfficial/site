@@ -149,6 +149,12 @@ importers:
       '@types/three':
         specifier: ^0.169.0
         version: 0.169.0
+      '@uiw/react-color-chrome':
+        specifier: ^2.3.2
+        version: 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@uiw/react-color-wheel':
+        specifier: ^2.3.2
+        version: 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       ai:
         specifier: ^3.4.33
         version: 3.4.33(openai@4.71.1(encoding@0.1.13)(zod@3.23.8))(react@18.2.0)(sswr@2.1.0(svelte@5.1.13))(svelte@5.1.13)(vue@3.5.12(typescript@5.2.2))(zod@3.23.8)
@@ -4524,6 +4530,88 @@ packages:
   '@typescript-eslint/visitor-keys@6.21.0':
     resolution: {integrity: sha512-JJtkDduxLi9bivAB+cYOVMtbkqdPOhZ+ZI5LC47MIRrDV4Yn2o+ZnW10Nkmr28xRpSpdJ6Sm42Hjf2+REYXm0A==}
     engines: {node: ^16.0.0 || >=18.0.0}
+
+  '@uiw/color-convert@2.3.2':
+    resolution: {integrity: sha512-Txs0oAcOGhvM15yi7NqDJSws6htpuGx75EblFlZmh4h4AyUYXaeN2HNcOAUt835M3SN1j7rqMC+XERIE4r776Q==}
+    peerDependencies:
+      '@babel/runtime': '>=7.19.0'
+
+  '@uiw/react-color-alpha@2.3.2':
+    resolution: {integrity: sha512-+yh+KEpNKjxNFFODQrB3Lki2hu6kznoSCngHgptlWBUtAC3e/e7tIiTTedSpCGr7fwIpC0CWrKwxENA3tyY/2Q==}
+    peerDependencies:
+      '@babel/runtime': '>=7.19.0'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@uiw/react-color-chrome@2.3.2':
+    resolution: {integrity: sha512-WvA8dg2y+vgoyy8GFBM3B1+SeJ29ov5OVEei1kACMKxThADPdI4w3RRmhYIMnSeFGVW3bGuBMq6JimjIKZirCQ==}
+    peerDependencies:
+      '@babel/runtime': '>=7.19.0'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@uiw/react-color-editable-input-hsla@2.3.2':
+    resolution: {integrity: sha512-lLO8K+Zv5L9HKBgM3zYSqeLKisBkpXCxlQmF8iCKYcIgeRilM26qqylskA4n6pVixfSooL0hyL/HwfNmbCIrrg==}
+    peerDependencies:
+      '@babel/runtime': '>=7.19.0'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@uiw/react-color-editable-input-rgba@2.3.2':
+    resolution: {integrity: sha512-HV0+5zzpaNG5v6EyVgmPfInd9UzYknQI7gdsVmmXKzB13L3RFhiv77r6o+q3IZMEnoDZ3U92uX4FeRaM1NrwYw==}
+    peerDependencies:
+      '@babel/runtime': '>=7.19.0'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@uiw/react-color-editable-input@2.3.2':
+    resolution: {integrity: sha512-DDl9pCN7hH5Q+OB6LiFGFmkqIQw81EDIEvDi6rr6G9U+k+oqZ9JCBKSZ9qNKSa4MqnuISOkFv0vL3Jh8fSyqcg==}
+    peerDependencies:
+      '@babel/runtime': '>=7.19.0'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@uiw/react-color-github@2.3.2':
+    resolution: {integrity: sha512-3QxpEOKYXbbV/L1cYsf7nhoOnl19/zWTpRRgda8LOe3SuRhFrFM3ZLa+UJUEXgO1cg9h64gxSKINh2st/FawpQ==}
+    peerDependencies:
+      '@babel/runtime': '>=7.19.0'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@uiw/react-color-hue@2.3.2':
+    resolution: {integrity: sha512-aAveo++GAghw09Ngc8Zzwxhj9mGaJfw8q40fDGFrVNxdrwrAjySIKHzlOSg5kw6WnEp4tUjhkMXDfCZWUhqmPA==}
+    peerDependencies:
+      '@babel/runtime': '>=7.19.0'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@uiw/react-color-saturation@2.3.2':
+    resolution: {integrity: sha512-aDKMhjylBUb4dH4oTQYz+U4mhpOebbQ2J0Y8y5aX1tfZ3fZuBqnXtWzu7Ffj3ksdKwkQHPddxT5IDTbAChF/og==}
+    peerDependencies:
+      '@babel/runtime': '>=7.19.0'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@uiw/react-color-swatch@2.3.2':
+    resolution: {integrity: sha512-AjkEcSdlpxiFm9yull4WDujuHr0tD9/+XkLtcus/MH768zSQbb+rj6cY1nZ8L8FI6LRDGRaVJqFaXm4ZOAaIZw==}
+    peerDependencies:
+      '@babel/runtime': '>=7.19.0'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@uiw/react-color-wheel@2.3.2':
+    resolution: {integrity: sha512-AwZZusWq+nlNNEjif6ruryrgc/cVuQ0x6XbdIVUbiQekfHFv+LunHnMS4EtmX+yPiOVihTvBp8NpfrdN2jJ8hw==}
+    peerDependencies:
+      '@babel/runtime': '>=7.19.0'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@uiw/react-drag-event-interactive@2.3.2':
+    resolution: {integrity: sha512-lG5pJCtqbYBv7Dj0r12PE9q9yg7P2CzlQodw5ZHPY9GCSZVXHJc0g4lGvCbe/4Y8HYqM8aU4CYS8LplpX+mIQw==}
+    peerDependencies:
+      '@babel/runtime': '>=7.19.0'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
 
   '@uphold/request-logger@2.0.0':
     resolution: {integrity: sha512-UvGS+v87C7VTtQDcFHDLfvfl1zaZaLSwSmAnV35Ne7CzAVvotmZqt9lAIoNpMpaoRpdjVIcnUDwPSeIeA//EoQ==}
@@ -12260,19 +12348,19 @@ snapshots:
       '@rollup/plugin-typescript': 11.1.6(rollup@4.25.0)(tslib@2.8.1)(typescript@5.2.2)
       '@rollup/plugin-wasm': 6.2.2(rollup@4.25.0)
       '@vitejs/plugin-react': 4.3.1(vite@5.4.10(@types/node@20.6.2)(terser@5.36.0))
-      babel-loader: 9.2.1(@babel/core@7.25.2)(webpack@5.94.0(esbuild@0.17.19))
-      css-loader: 7.1.2(webpack@5.94.0(esbuild@0.17.19))
+      babel-loader: 9.2.1(@babel/core@7.25.2)(webpack@5.94.0(esbuild@0.23.1))
+      css-loader: 7.1.2(webpack@5.94.0(esbuild@0.23.1))
       esbuild: 0.23.1
-      html-webpack-plugin: 5.6.0(webpack@5.94.0(esbuild@0.17.19))
-      mini-css-extract-plugin: 2.9.1(webpack@5.94.0(esbuild@0.17.19))
-      node-polyfill-webpack-plugin: 4.0.0(webpack@5.94.0(esbuild@0.17.19))
+      html-webpack-plugin: 5.6.0(webpack@5.94.0(esbuild@0.23.1))
+      mini-css-extract-plugin: 2.9.1(webpack@5.94.0(esbuild@0.23.1))
+      node-polyfill-webpack-plugin: 4.0.0(webpack@5.94.0(esbuild@0.23.1))
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       regenerator-runtime: 0.14.1
       rollup-plugin-cleanup: 3.2.1(rollup@4.25.0)
       rollup-plugin-import-css: 3.5.1(rollup@4.25.0)
       rollup-plugin-visualizer: 5.12.0(rollup@4.25.0)
-      string-replace-loader: 3.1.0(webpack@5.94.0(esbuild@0.17.19))
+      string-replace-loader: 3.1.0(webpack@5.94.0(esbuild@0.23.1))
       terser-webpack-plugin: 5.3.10(esbuild@0.23.1)(webpack@5.94.0(esbuild@0.17.19))
       tsconfig-paths: 4.2.0
       vite-bundle-visualizer: 1.2.1(rollup@4.25.0)
@@ -14795,6 +14883,99 @@ snapshots:
       '@typescript-eslint/types': 6.21.0
       eslint-visitor-keys: 3.4.3
 
+  '@uiw/color-convert@2.3.2(@babel/runtime@7.26.0)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+
+  '@uiw/react-color-alpha@2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+      '@uiw/color-convert': 2.3.2(@babel/runtime@7.26.0)
+      '@uiw/react-drag-event-interactive': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
+  '@uiw/react-color-chrome@2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+      '@uiw/color-convert': 2.3.2(@babel/runtime@7.26.0)
+      '@uiw/react-color-alpha': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@uiw/react-color-editable-input': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@uiw/react-color-editable-input-hsla': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@uiw/react-color-editable-input-rgba': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@uiw/react-color-github': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@uiw/react-color-hue': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@uiw/react-color-saturation': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
+  '@uiw/react-color-editable-input-hsla@2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+      '@uiw/color-convert': 2.3.2(@babel/runtime@7.26.0)
+      '@uiw/react-color-editable-input-rgba': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
+  '@uiw/react-color-editable-input-rgba@2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+      '@uiw/color-convert': 2.3.2(@babel/runtime@7.26.0)
+      '@uiw/react-color-editable-input': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
+  '@uiw/react-color-editable-input@2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
+  '@uiw/react-color-github@2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+      '@uiw/color-convert': 2.3.2(@babel/runtime@7.26.0)
+      '@uiw/react-color-swatch': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
+  '@uiw/react-color-hue@2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+      '@uiw/color-convert': 2.3.2(@babel/runtime@7.26.0)
+      '@uiw/react-color-alpha': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
+  '@uiw/react-color-saturation@2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+      '@uiw/color-convert': 2.3.2(@babel/runtime@7.26.0)
+      '@uiw/react-drag-event-interactive': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
+  '@uiw/react-color-swatch@2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+      '@uiw/color-convert': 2.3.2(@babel/runtime@7.26.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
+  '@uiw/react-color-wheel@2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+      '@uiw/color-convert': 2.3.2(@babel/runtime@7.26.0)
+      '@uiw/react-drag-event-interactive': 2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
+  '@uiw/react-drag-event-interactive@2.3.2(@babel/runtime@7.26.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
   '@uphold/request-logger@2.0.0(request@2.88.2)':
     dependencies:
       request: 2.88.2
@@ -15379,12 +15560,12 @@ snapshots:
 
   axobject-query@4.1.0: {}
 
-  babel-loader@9.2.1(@babel/core@7.25.2)(webpack@5.94.0(esbuild@0.17.19)):
+  babel-loader@9.2.1(@babel/core@7.25.2)(webpack@5.94.0(esbuild@0.23.1)):
     dependencies:
       '@babel/core': 7.25.2
       find-cache-dir: 4.0.0
       schema-utils: 4.2.0
-      webpack: 5.94.0(esbuild@0.17.19)
+      webpack: 5.94.0(esbuild@0.23.1)
 
   babel-plugin-macros@3.1.0:
     dependencies:
@@ -15804,7 +15985,7 @@ snapshots:
       randombytes: 2.1.0
       randomfill: 1.0.4
 
-  css-loader@7.1.2(webpack@5.94.0(esbuild@0.17.19)):
+  css-loader@7.1.2(webpack@5.94.0(esbuild@0.23.1)):
     dependencies:
       icss-utils: 5.1.0(postcss@8.4.48)
       postcss: 8.4.48
@@ -15815,7 +15996,7 @@ snapshots:
       postcss-value-parser: 4.2.0
       semver: 7.6.3
     optionalDependencies:
-      webpack: 5.94.0(esbuild@0.17.19)
+      webpack: 5.94.0(esbuild@0.23.1)
 
   css-select@4.3.0:
     dependencies:
@@ -17132,7 +17313,7 @@ snapshots:
     dependencies:
       void-elements: 3.1.0
 
-  html-webpack-plugin@5.6.0(webpack@5.94.0(esbuild@0.17.19)):
+  html-webpack-plugin@5.6.0(webpack@5.94.0(esbuild@0.23.1)):
     dependencies:
       '@types/html-minifier-terser': 6.1.0
       html-minifier-terser: 6.1.0
@@ -17140,7 +17321,7 @@ snapshots:
       pretty-error: 4.0.0
       tapable: 2.2.1
     optionalDependencies:
-      webpack: 5.94.0(esbuild@0.17.19)
+      webpack: 5.94.0(esbuild@0.23.1)
 
   htmlparser2@6.1.0:
     dependencies:
@@ -17716,11 +17897,11 @@ snapshots:
 
   mimic-fn@2.1.0: {}
 
-  mini-css-extract-plugin@2.9.1(webpack@5.94.0(esbuild@0.17.19)):
+  mini-css-extract-plugin@2.9.1(webpack@5.94.0(esbuild@0.23.1)):
     dependencies:
       schema-utils: 4.2.0
       tapable: 2.2.1
-      webpack: 5.94.0(esbuild@0.17.19)
+      webpack: 5.94.0(esbuild@0.23.1)
 
   miniflare@3.20241106.0:
     dependencies:
@@ -17905,7 +18086,7 @@ snapshots:
 
   node-gyp-build@4.8.2: {}
 
-  node-polyfill-webpack-plugin@4.0.0(webpack@5.94.0(esbuild@0.17.19)):
+  node-polyfill-webpack-plugin@4.0.0(webpack@5.94.0(esbuild@0.23.1)):
     dependencies:
       assert: 2.1.0
       browserify-zlib: 0.2.0
@@ -17931,7 +18112,7 @@ snapshots:
       url: 0.11.4
       util: 0.12.5
       vm-browserify: 1.1.2
-      webpack: 5.94.0(esbuild@0.17.19)
+      webpack: 5.94.0(esbuild@0.23.1)
 
   node-releases@2.0.18: {}
 
@@ -18993,11 +19174,11 @@ snapshots:
 
   streamsearch@1.1.0: {}
 
-  string-replace-loader@3.1.0(webpack@5.94.0(esbuild@0.17.19)):
+  string-replace-loader@3.1.0(webpack@5.94.0(esbuild@0.23.1)):
     dependencies:
       loader-utils: 2.0.4
       schema-utils: 3.3.0
-      webpack: 5.94.0(esbuild@0.17.19)
+      webpack: 5.94.0(esbuild@0.23.1)
 
   string-width@4.2.3:
     dependencies:
@@ -19207,17 +19388,6 @@ snapshots:
       mkdirp: 1.0.4
       yallist: 4.0.0
 
-  terser-webpack-plugin@5.3.10(esbuild@0.17.19)(webpack@5.94.0(esbuild@0.17.19)):
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.25
-      jest-worker: 27.5.1
-      schema-utils: 3.3.0
-      serialize-javascript: 6.0.2
-      terser: 5.36.0
-      webpack: 5.94.0(esbuild@0.17.19)
-    optionalDependencies:
-      esbuild: 0.17.19
-
   terser-webpack-plugin@5.3.10(esbuild@0.23.1)(webpack@5.94.0(esbuild@0.17.19)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
@@ -19225,7 +19395,7 @@ snapshots:
       schema-utils: 3.3.0
       serialize-javascript: 6.0.2
       terser: 5.36.0
-      webpack: 5.94.0(esbuild@0.17.19)
+      webpack: 5.94.0(esbuild@0.23.1)
     optionalDependencies:
       esbuild: 0.23.1
 
@@ -19711,36 +19881,6 @@ snapshots:
   webidl-conversions@7.0.0: {}
 
   webpack-sources@3.2.3: {}
-
-  webpack@5.94.0(esbuild@0.17.19):
-    dependencies:
-      '@types/estree': 1.0.6
-      '@webassemblyjs/ast': 1.14.1
-      '@webassemblyjs/wasm-edit': 1.14.1
-      '@webassemblyjs/wasm-parser': 1.14.1
-      acorn: 8.14.0
-      acorn-import-attributes: 1.9.5(acorn@8.14.0)
-      browserslist: 4.24.2
-      chrome-trace-event: 1.0.4
-      enhanced-resolve: 5.17.1
-      es-module-lexer: 1.5.4
-      eslint-scope: 5.1.1
-      events: 3.3.0
-      glob-to-regexp: 0.4.1
-      graceful-fs: 4.2.11
-      json-parse-even-better-errors: 2.3.1
-      loader-runner: 4.3.0
-      mime-types: 2.1.35
-      neo-async: 2.6.2
-      schema-utils: 3.3.0
-      tapable: 2.2.1
-      terser-webpack-plugin: 5.3.10(esbuild@0.17.19)(webpack@5.94.0(esbuild@0.17.19))
-      watchpack: 2.4.2
-      webpack-sources: 3.2.3
-    transitivePeerDependencies:
-      - '@swc/core'
-      - esbuild
-      - uglify-js
 
   webpack@5.94.0(esbuild@0.23.1):
     dependencies:

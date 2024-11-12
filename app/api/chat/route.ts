@@ -1,24 +1,27 @@
 import { NextResponse } from 'next/server';
+import OpenAI from 'openai';
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import { ChatMessage } from '@/lib/types';
 
 export const runtime = 'edge';
 
 interface RequestBody {
-  messages: Array<{ role: string; content: string }>;
+  messages: ChatMessage[];
   token: string;
   model: string;
   type: 'text' | 'code' | 'image';
-  provider: 'cloudflare' | 'huggingface';
+  provider: 'github' | 'cloudflare';
 }
 
 // Private credentials stored securely in API route
 const CLOUDFLARE_ACCOUNT_ID = 'acb7d77b6f9433aa6109e40b25170148';
 const CLOUDFLARE_API_TOKEN = 'l-LzejTZzisRvTnkDRobaEaFw5Q1-Imqsbl_2w3E';
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
 export async function POST(req: Request) {
   try {
     const body = await req.json() as RequestBody;
     
-    // Accept both 'verified' and 'development' tokens
     if (body.token !== 'verified' && body.token !== 'development') {
       return NextResponse.json({
         result: { response: '' },
@@ -29,28 +32,42 @@ export async function POST(req: Request) {
     }
 
     let response;
-    if (body.provider === 'cloudflare') {
+    
+    if (body.provider === 'github') {
+      const client = new OpenAI({ 
+        baseURL: 'https://models.inference.ai.azure.com',
+        apiKey: GITHUB_TOKEN 
+      });
+
+      const messages: ChatCompletionMessageParam[] = body.messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
+      const completion = await client.chat.completions.create({
+        messages,
+        model: body.model,
+        temperature: 1.0,
+        top_p: 1.0,
+        max_tokens: 1000,
+      });
+
+      return NextResponse.json({
+        result: {
+          response: completion.choices[0].message.content || ''
+        },
+        success: true,
+        errors: [],
+        messages: []
+      });
+    } 
+    
+    else if (body.provider === 'cloudflare') {
       const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${body.model}`;
       
       const requestBody = {
-        messages: [
-          {
-            role: "system",
-            content: "You are an expert software developer with deep knowledge of programming languages, software architecture, and best practices. Your role is to help with code review, debugging, architecture decisions, and implementation guidance. Please provide clear, detailed explanations with code examples when relevant. Focus on writing clean, maintainable, and efficient code while following industry standards and security best practices. If you need clarification about requirements or context, ask questions before providing solutions."
-          },
-          ...body.messages.slice(1).map(msg => ({
-            role: msg.role,
-            content: msg.content
-          }))
-        ]
+        messages: body.messages
       };
-
-      console.log('Sending request to Cloudflare:', {
-        endpoint,
-        model: body.model,
-        type: body.type,
-        requestBody
-      });
 
       response = await fetch(endpoint, {
         method: 'POST',

@@ -3,20 +3,20 @@
 import { Turnstile as TurnstileComponent } from '@marsidev/react-turnstile';
 import { useTheme } from "next-themes";
 
-export interface TurnstileProps {
+interface TurnstileProps {
   onSuccess: (token: string) => void;
   onError?: () => void;
-  sitekey?: string;
 }
 
-export function Turnstile({ onSuccess, onError, sitekey }: TurnstileProps) {
+export function Turnstile({ onSuccess, onError }: TurnstileProps) {
   const { theme } = useTheme();
 
   return (
     <TurnstileComponent
-      siteKey={sitekey || "0x4AAAAAAAzsPzeKVZCumamS"}
+      siteKey="0x4AAAAAAAzsPzeKVZCumamS"
       options={{
         theme: theme === "dark" ? "dark" : "light",
+        size: "normal",
       }}
       onSuccess={onSuccess}
       onError={onError}
