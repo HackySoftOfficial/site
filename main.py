@@ -3,10 +3,24 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 import httpx  # For async HTTP requests to Turnstile and Discord
 import os
+import codecs  # For handling special characters and emojis
+import re  # For HTML manipulation
 
 # Constants
 DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1305531529472118855/EegPmCEEoOUsFIURZeNs4rLg4ZhCCq1Wa6NAlljhDJwN_GaXBB86VsLzFWynoZE70zsj'
 TURNSTILE_SECRET_KEY = '0x4AAAAAAAz3lQ9_02B8nbSPg5OWpliP8xs'
+
+# Google Analytics snippet
+GOOGLE_ANALYTICS = '''<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DNJN1PF3CS"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', 'G-4JS04XN1KX');
+</script>
+'''
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -31,9 +45,18 @@ async def serve_html(path: str = ""):
         path += ".html"
     try:
         html_file_path = os.path.join(current_dir, path)
-        with open(html_file_path, "r") as file:
+        # Use codecs to open file with UTF-8 encoding
+        with codecs.open(html_file_path, "r", encoding='utf-8') as file:
             html_content = file.read()
-        return HTMLResponse(content=html_content, status_code=200)
+            
+        # Insert Google Analytics code into head
+        if '<head>' in html_content:
+            html_content = html_content.replace('<head>', f'<head>\n{GOOGLE_ANALYTICS}')
+        else:
+            # If no head tag exists, add it with the analytics code
+            html_content = f'<head>\n{GOOGLE_ANALYTICS}</head>\n{html_content}'
+            
+        return HTMLResponse(content=html_content, status_code=200, media_type='text/html; charset=utf-8')
     except FileNotFoundError:
         return HTMLResponse(content="Page not found", status_code=404)
 
@@ -69,7 +92,7 @@ async def contact_form(request: Request):
         # Send to Discord webhook
         discord_payload = {
             "embeds": [{
-                "title": "❓ New Support Email Received",
+                "title": "📧 New Support Email Received",
                 "color": 0x00ff00,
                 "fields": [
                     {"name": "Name", "value": data["name"], "inline": True},

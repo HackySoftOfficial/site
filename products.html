@@ -40,8 +40,36 @@
             flex-direction: column;
         }
 
+        /* Fireflies */
+        .firefly {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            filter: blur(1px);
+            animation: firefly 4s ease-in infinite;
+        }
+
+        @keyframes firefly {
+            0% {
+                opacity: 0;
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: translateY(-20px) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-40px) scale(1);
+            }
+        }
+
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 0 1rem;
             position: relative;
@@ -139,16 +167,18 @@
 
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
             padding: 2rem 0;
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
         .product-card {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 1rem;
+            border-radius: 1.5rem;
             border: 1px solid var(--border);
-            padding: 2rem;
+            padding: 2.5rem;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
         }
@@ -160,38 +190,40 @@
 
         .product-image {
             width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
+            height: 600px;
+            object-fit: contain;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
         }
 
         .product-title {
             color: var(--primary);
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
+            font-size: 1.75rem;
+            margin-bottom: 1.25rem;
         }
 
         .product-description {
             color: var(--muted-foreground);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.75rem;
+            font-size: 1.1rem;
         }
 
         .product-price {
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             color: var(--text);
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
         }
 
         .buy-button {
             width: 100%;
-            padding: 1rem;
+            padding: 1.25rem;
             background: var(--primary);
             color: var(--text);
             border: none;
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-size: 1.1rem;
         }
 
         .buy-button:hover {
@@ -269,6 +301,14 @@
             .social-links {
                 justify-content: center;
             }
+            
+            .product-card {
+                padding: 1.5rem;
+            }
+
+            .product-image {
+                height: 400px;
+            }
         }
     </style>
 </head>
@@ -294,25 +334,32 @@
             <div class="container">
                 <div class="products-grid">
                     <div class="product-card">
-                        <img src="product1.jpg" alt="Product 1" class="product-image">
-                        <h3 class="product-title">Custom Software Development</h3>
-                        <p class="product-description">Tailored software solutions designed to meet your specific business needs and requirements.</p>
-                        <p class="product-price">Starting from $5,000</p>
-                        <button class="buy-button">Get Started</button>
+                        <img src="https://cdn.discordapp.com/attachments/1300563354032799836/1300564273038360646/product3.png?ex=67385e9e&is=67370d1e&hm=bb45c2b412f572d457e8750b342857ddb844a6d0e64a7b184803ae1d5c480054&" alt="Product 1" class="product-image">
+                        <h3 class="product-title">🔄 Account Backup</h3>
+                        <p class="product-description">Get all info from your account, and use it in case you get banned!</p>
+                        <p class="product-price">$1.99</p>
+                        <button class="buy-button">Purchase</button>
                     </div>
                     <div class="product-card">
-                        <img src="product2.jpg" alt="Product 2" class="product-image">
-                        <h3 class="product-title">Web Application Development</h3>
-                        <p class="product-description">Modern, responsive web applications built with cutting-edge technologies.</p>
-                        <p class="product-price">Starting from $3,000</p>
-                        <button class="buy-button">Get Started</button>
+                        <img src="https://cdn.discordapp.com/attachments/1300563354032799836/1300564305896280236/product1.png?ex=67385ea5&is=67370d25&hm=ee22d55badbe7aa771389201aa829d315bfa168392abe8b2cf8f60427ddab083&" alt="Product 2" class="product-image">
+                        <h3 class="product-title">🔥 Lava Raider</h3>
+                        <p class="product-description">Control all your discord tokens at once.</p>
+                        <p class="product-price">$7.99</p>
+                        <button class="buy-button">Purchase</button>
                     </div>
                     <div class="product-card">
-                        <img src="product3.jpg" alt="Product 3" class="product-image">
-                        <h3 class="product-title">Mobile App Development</h3>
-                        <p class="product-description">Native and cross-platform mobile applications for iOS and Android.</p>
-                        <p class="product-price">Starting from $4,000</p>
-                        <button class="buy-button">Get Started</button>
+                        <img src="https://cdn.discordapp.com/attachments/1300563354032799836/1300564439027683410/product2.png?ex=67385ec5&is=67370d45&hm=698e0b6a316d58e91c8633dfba72767b71820d2bc3a5932be2cdb76ab7af2091&" alt="Product 3" class="product-image">
+                        <h3 class="product-title">🧾 Token Farmer</h3>
+                        <p class="product-description">Mass create discord tokens.</p>
+                        <p class="product-price">$24.99</p>
+                        <button class="buy-button">Purchase</button>
+                    </div>
+                    <div class="product-card">
+                        <img src="https://cdn.discordapp.com/attachments/1300563354032799836/1301188525588480141/image.png?ex=673800ff&is=6736af7f&hm=f370713edc1c9eb44d94c37202146ef48d853ea02d217d793f902e573f955391&" alt="Product 3" class="product-image">
+                        <h3 class="product-title">🔗 Proxy Server</h3>
+                        <p class="product-description">Connect your networks to each other.</p>
+                        <p class="product-price">$1.00</p>
+                        <button class="buy-button">Purchase</button>
                     </div>
                 </div>
             </div>
@@ -348,10 +395,26 @@
         // Add click handlers for buy buttons
         document.querySelectorAll('.buy-button').forEach(button => {
             button.addEventListener('click', () => {
-                const product = button.closest('.product-card').querySelector('.product-title').textContent;
-                alert(`Thank you for your interest in ${product}! Please contact us to discuss your project.`);
+                window.open('https://dsc.gg/hackysoft', '_blank');
             });
         });
+
+        // Create fireflies
+        function createFirefly() {
+            const firefly = document.createElement('div');
+            firefly.className = 'firefly';
+            firefly.style.left = Math.random() * window.innerWidth + 'px';
+            firefly.style.top = Math.random() * window.innerHeight + 'px';
+            document.body.appendChild(firefly);
+
+            // Remove firefly after animation
+            firefly.addEventListener('animationend', () => {
+                firefly.remove();
+            });
+        }
+
+        // Create new fireflies periodically
+        setInterval(createFirefly, 500);
     </script>
 </body>
 </html>
