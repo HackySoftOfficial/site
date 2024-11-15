@@ -1,7 +1,0 @@
-node_modules
-.next
-.vercel
-.wrangler
-.dev.vars
-.aider*
-.env
