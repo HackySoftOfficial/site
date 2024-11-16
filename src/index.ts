@@ -60,6 +60,7 @@ export default {
 
 					const turnstileData = await turnstileResponse.json() as TurnstileResponse;
 					if (!turnstileData.success) {
+						console.error('Turnstile verification failed:', turnstileData);
 						const errorMessage = turnstileData["error-codes"]?.join(", ") || "Unknown error";
 						return new Response(JSON.stringify({ 
 							error: `Security verification failed: ${errorMessage}`

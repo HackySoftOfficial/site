@@ -6,7 +6,7 @@
     <title>HackySoft - Contact Us</title>
     <link rel="icon" href="HS.png" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback" async defer></script>
     <style>
         :root {
             --primary: #f97316;
@@ -363,7 +363,7 @@
                         <textarea id="message" name="message" required></textarea>
                     </div>
                     <div class="turnstile">
-                        <div class="cf-turnstile" data-sitekey="0x4AAAAAAAz3lbV1sRTeUFHX"></div>
+                        <div id="turnstile-container"></div>
                     </div>
                     <button type="submit" class="submit-btn">Send Message</button>
                 </form>
@@ -397,6 +397,17 @@
     </footer>
 
     <script>
+        let turnstileToken = null;
+
+        window.onloadTurnstileCallback = function () {
+            turnstile.render('#turnstile-container', {
+                sitekey: '0x4AAAAAAAz3lbV1sRTeUFHX',
+                callback: function(token) {
+                    turnstileToken = token;
+                }
+            });
+        };
+
         async function handleSubmit(event) {
             event.preventDefault();
             
@@ -405,12 +416,15 @@
             submitBtn.disabled = true;
             
             try {
-                const turnstileToken = await turnstile.render('.cf-turnstile');
+                if (!turnstileToken) {
+                    throw new Error('Please complete the security check');
+                }
+
                 const formData = {
                     name: form.name.value,
                     email: form.email.value,
                     message: form.message.value,
-                    turnstileToken
+                    turnstileToken: turnstileToken
                 };
                 
                 const response = await fetch('/contactus', {
@@ -424,6 +438,9 @@
                 if (response.ok) {
                     alert('Message sent successfully!');
                     form.reset();
+                    // Reset Turnstile after successful submission
+                    turnstile.reset('#turnstile-container');
+                    turnstileToken = null;
                 } else {
                     const data = await response.json();
                     throw new Error(data.error || 'Failed to send message');
