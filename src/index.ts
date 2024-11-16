@@ -43,22 +43,22 @@ export default {
 				}
 
 				// Skip Turnstile verification for localhost or 127.0.0.1
-				const clientIp = request.headers.get('origin') || '';
-				if (!clientIp.includes('localhost') && !clientIp.includes('127.0.0.1')) {
+				const origin = request.headers.get('origin') || '';
+				if (!origin.includes('localhost') && !origin.includes('127.0.0.1')) {
 					// Verify Cloudflare Turnstile token
+					const formData = new URLSearchParams();
+					formData.append('secret', TURNSTILE_SECRET_KEY);
+					formData.append('response', data.turnstileToken);
+
 					const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
 						method: 'POST',
-						headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-						body: new URLSearchParams({
-							'secret': TURNSTILE_SECRET_KEY,
-							'response': data.turnstileToken,
-						})
+						body: formData
 					});
 
 					const turnstileData = await turnstileResponse.json() as TurnstileResponse;
 					if (!turnstileData.success) {
 						return new Response(JSON.stringify({ 
-							error: `Security verification failed. Please try again. Your origin: ${clientIp}`
+							error: `Security verification failed. Please try again.`
 						}), {
 							status: 403,
 							headers: { 'Content-Type': 'application/json' }
