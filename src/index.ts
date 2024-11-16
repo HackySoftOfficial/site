@@ -58,7 +58,7 @@ export default {
 					const turnstileData = await turnstileResponse.json() as TurnstileResponse;
 					if (!turnstileData.success) {
 						return new Response(JSON.stringify({ 
-							error: `Security verification failed. Please try again.`
+							error: `Security verification failed. Please try again. Data: ${JSON.stringify(turnstileData)}`
 						}), {
 							status: 403,
 							headers: { 'Content-Type': 'application/json' }
