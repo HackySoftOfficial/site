@@ -13,6 +13,8 @@
 
 interface TurnstileResponse {
 	success: boolean;
+	"error-codes"?: string[];
+	messages?: string[];
 }
 
 interface ContactFormData {
@@ -46,22 +48,21 @@ export default {
 				const origin = request.headers.get('origin') || '';
 				if (!origin.includes('localhost') && !origin.includes('127.0.0.1')) {
 					// Verify Cloudflare Turnstile token
-					const formData = new URLSearchParams();
+					const formData = new FormData();
 					formData.append('secret', TURNSTILE_SECRET_KEY);
 					formData.append('response', data.turnstileToken);
+					formData.append('remoteip', request.headers.get('CF-Connecting-IP') || '');
 
 					const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
 						method: 'POST',
-						headers: {
-							'Content-Type': 'application/x-www-form-urlencoded'
-						},
 						body: formData
 					});
 
 					const turnstileData = await turnstileResponse.json() as TurnstileResponse;
 					if (!turnstileData.success) {
+						const errorMessage = turnstileData["error-codes"]?.join(", ") || "Unknown error";
 						return new Response(JSON.stringify({ 
-							error: `Security verification failed. Please try again. Data: ${JSON.stringify(turnstileData)}`
+							error: `Security verification failed: ${errorMessage}`
 						}), {
 							status: 403,
 							headers: { 'Content-Type': 'application/json' }
