@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Serial Console</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --text-color: #d4d4d4;
+            --accent-color: #007acc;
+            --input-bg: #2d2d2d;
+            --border-color: #404040;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Consolas', monospace;
+            margin: 0;
+            padding: 10px;
+            height: 80vh;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        select, button, input {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            border: none;
+            transition: opacity 0.2s;
+            cursor: pointer;
+            min-width: 70px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #console {
+            flex: 1;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 13px;
+            margin-bottom: 8px;
+            height: 400px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 8px;
+        }
+
+        #messageInput {
+            flex: 1;
+        }
+
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: auto;
+            font-size: 12px;
+        }
+
+        .connected {
+            background-color: #2ea043;
+        }
+
+        .disconnected {
+            background-color: #f85149;
+        }
+
+        /* ANSI color classes */
+        .ansi-black { color: #4e4e4e; }
+        .ansi-red { color: #ff6b68; }
+        .ansi-green { color: #8ec07c; }
+        .ansi-yellow { color: #d79921; }
+        .ansi-blue { color: #83a598; }
+        .ansi-magenta { color: #d3869b; }
+        .ansi-cyan { color: #89b482; }
+        .ansi-white { color: #d4d4d4; }
+        .ansi-bright-black { color: #928374; }
+        .ansi-bright-red { color: #fb4934; }
+        .ansi-bright-green { color: #b8bb26; }
+        .ansi-bright-yellow { color: #fabd2f; }
+        .ansi-bright-blue { color: #83a598; }
+        .ansi-bright-magenta { color: #d3869b; }
+        .ansi-bright-cyan { color: #8ec07c; }
+        .ansi-bright-white { color: #ebdbb2; }
+        .ansi-bold { font-weight: bold; }
+        .ansi-italic { font-style: italic; }
+        .ansi-underline { text-decoration: underline; }
+        .ansi-blink { animation: blink 1s step-end infinite; }
+        .ansi-reverse { filter: invert(100%); }
+        .ansi-hidden { opacity: 0; }
+        .ansi-strike { text-decoration: line-through; }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <select id="baudRate">
+            <option value="9600">9600</option>
+            <option value="19200">19200</option>
+            <option value="38400">38400</option>
+            <option value="57600">57600</option>
+            <option value="115200" selected>115200</option>
+            <option value="230400">230400</option>
+        </select>
+        <button id="connectBtn">Connect</button>
+        <button id="clearBtn">Clear</button>
+        <div id="status" class="status disconnected">Disconnected</div>
+    </div>
+    <div id="console"></div>
+    <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Type message...">
+        <button id="sendBtn">Send</button>
+    </div>
+
+    <script>
+        let port;
+        let reader;
+        let writer;
+        let keepReading = true;
+        const decoder = new TextDecoder();
+        const encoder = new TextEncoder();
+
+        async function connectToPort() {
+            try {
+                if (port) {
+                    await disconnect();
+                }
+
+                port = await navigator.serial.requestPort();
+                const baudRate = parseInt(document.getElementById('baudRate').value);
+                
+                await port.open({ baudRate, dataBits: 8, stopBits: 1, parity: "none", flowControl: "none" });
+                writer = port.writable.getWriter();
+                updateStatus(true);
+                keepReading = true;
+                
+                while (port.readable && keepReading) {
+                    reader = port.readable.getReader();
+                    try {
+                        while (true) {
+                            const { value, done } = await reader.read();
+                            if (done) break;
+                            
+                            const text = decoder.decode(value);
+                            appendToConsole(parseANSI(text));
+                            console.log('Received:', text); // Added logging
+                        }
+                    } catch (error) {
+                        console.error('Error reading:', error);
+                        break;
+                    } finally {
+                        reader.releaseLock();
+                    }
+                }
+            } catch (error) {
+                console.error('Connection error:', error);
+                updateStatus(false);
+                if (keepReading) {
+                    setTimeout(connectToPort, 1000);
+                }
+            }
+        }
+
+        async function disconnect() {
+            keepReading = false;
+            try {
+                if (reader) {
+                    await reader.cancel();
+                    await reader.releaseLock();
+                    reader = null;
+                }
+                if (writer) {
+                    await writer.close();
+                    await writer.releaseLock();
+                    writer = null;
+                }
+                if (port) {
+                    await port.close();
+                    port = null;
+                }
+            } catch (error) {
+                console.error('Error during disconnect:', error);
+            }
+            updateStatus(false);
+        }
+
+        async function sendMessage() {
+            if (!writer) return;
+            
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value + '\n';
+            
+            try {
+                await writer.write(encoder.encode(message));
+                console.log('Sent:', message); // Added logging
+                messageInput.value = '';
+            } catch (error) {
+                console.error('Error sending message:', error);
+                await disconnect();
+            }
+        }
+
+        function updateStatus(connected) {
+            const status = document.getElementById('status');
+            status.textContent = connected ? 'Connected' : 'Disconnected';
+            status.className = `status ${connected ? 'connected' : 'disconnected'}`;
+            document.getElementById('connectBtn').textContent = connected ? 'Disconnect' : 'Connect';
+            console.log('Status:', connected ? 'Connected' : 'Disconnected'); // Added logging
+        }
+
+        function parseANSI(text) {
+            const ansiRegex = /\x1b\[([0-9;]*)?([a-zA-Z])/g;
+            let result = text;
+            let lastIndex = 0;
+            let match;
+            let currentClasses = [];
+
+            while ((match = ansiRegex.exec(text)) !== null) {
+                const [fullMatch, params = '', command] = match;
+                const codes = params.split(';').map(Number);
+                
+                const before = text.substring(lastIndex, match.index);
+                let replacement = before;
+
+                if (command === 'm') {
+                    if (codes.length === 0 || codes[0] === 0) {
+                        if (currentClasses.length > 0) {
+                            replacement += '</span>'.repeat(currentClasses.length);
+                            currentClasses = [];
+                        }
+                    } else {
+                        codes.forEach(code => {
+                            let className = '';
+                            if (code >= 30 && code <= 37) {
+                                className = `ansi-${['black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'][code - 30]}`;
+                            } else if (code >= 90 && code <= 97) {
+                                className = `ansi-bright-${['black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'][code - 90]}`;
+                            } else if (code >= 40 && code <= 47) {
+                                className = `ansi-bg-${['black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'][code - 40]}`;
+                            } else {
+                                switch (code) {
+                                    case 1: className = 'ansi-bold'; break;
+                                    case 3: className = 'ansi-italic'; break;
+                                    case 4: className = 'ansi-underline'; break;
+                                    case 5: className = 'ansi-blink'; break;
+                                    case 7: className = 'ansi-reverse'; break;
+                                    case 8: className = 'ansi-hidden'; break;
+                                    case 9: className = 'ansi-strike'; break;
+                                }
+                            }
+                            if (className) {
+                                currentClasses.push(className);
+                                replacement += `<span class="${className}">`;
+                            }
+                        });
+                    }
+                }
+
+                result = result.substring(0, lastIndex) + replacement + result.substring(match.index + fullMatch.length);
+                lastIndex = match.index + fullMatch.length;
+            }
+
+            if (currentClasses.length > 0) {
+                result += '</span>'.repeat(currentClasses.length);
+            }
+
+            return result;
+        }
+
+        function appendToConsole(text) {
+            const consoleDiv = document.getElementById('console');
+            consoleDiv.innerHTML += text;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        document.getElementById('connectBtn').addEventListener('click', async () => {
+            if (port) {
+                await disconnect();
+            } else {
+                keepReading = true;
+                await connectToPort();
+            }
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            document.getElementById('console').innerHTML = '';
+            console.log('Console cleared'); // Added logging
+        });
+
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+
+        document.getElementById('messageInput').addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        navigator.serial.addEventListener('disconnect', async (event) => {
+            console.log('Device disconnected');
+            await disconnect();
+            if (keepReading) {
+                setTimeout(connectToPort, 1000);
+            }
+        });
+    </script>
+</body>
+</html>
